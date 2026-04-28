@@ -1,0 +1,28 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Material Symbols */
+.material-symbols-outlined {
+	font-variation-settings:
+		'FILL' 0,
+		'wght' 400,
+		'GRAD' 0,
+		'opsz' 24;
+}
+
+/* Gradient helpers */
+.bg-gradient-primary {
+	background: linear-gradient(135deg, #0056d2 0%, #004bb9 100%);
+}
+
+/* Ambient shadow — uses on-surface as shadow tint for natural depth */
+.ambient-shadow {
+	box-shadow: 0 12px 40px rgba(20, 49, 97, 0.06);
+}
+
+/* Glassmorphism panel */
+.glass-panel {
+	background: rgba(249, 249, 255, 0.8);
+	backdrop-filter: blur(20px);
+}

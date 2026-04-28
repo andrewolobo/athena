@@ -1,0 +1,14 @@
+{
+    "name": "@athena/database",
+    "version": "0.1.0",
+    "private": true,
+    "scripts": {
+        "migrate": "node-pg-migrate",
+        "seed": "psql $DATABASE_URL -f seeds/dev_seed.sql",
+        "seed:activity": "psql $DATABASE_URL -f seeds/weekly_activity_sample.sql"
+    },
+    "dependencies": {
+        "node-pg-migrate": "^7.7.0",
+        "pg": "^8.13.0"
+    }
+}

@@ -1,0 +1,275 @@
+<!DOCTYPE html><html class="light" lang="en" style=""><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Form Builder | Analytical Sanctuary</title>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;family=Inter:wght@300;400;500;600&amp;display=swap" rel="stylesheet">
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-error-container": "#752121",
+              "inverse-on-surface": "#959db2",
+              "tertiary": "#615b77",
+              "error-dim": "#4e0309",
+              "surface-container": "#e9edff",
+              "tertiary-container": "#e3dbfd",
+              "surface-container-low": "#f1f3ff",
+              "primary": "#0056d2",
+              "tertiary-dim": "#55506b",
+              "on-tertiary-fixed-variant": "#5b5672",
+              "surface-bright": "#f9f9ff",
+              "on-secondary-fixed-variant": "#4f5c70",
+              "on-surface": "#143161",
+              "outline": "#617aae",
+              "primary-fixed": "#dae2ff",
+              "inverse-surface": "#060e1e",
+              "inverse-primary": "#5b8cff",
+              "on-primary-fixed-variant": "#0053cc",
+              "secondary-fixed": "#d6e3fb",
+              "on-error": "#fff7f6",
+              "on-surface-variant": "#455f90",
+              "on-secondary-container": "#465365",
+              "on-primary-fixed": "#003991",
+              "secondary": "#536073",
+              "on-secondary": "#f8f8ff",
+              "on-primary": "#f8f7ff",
+              "surface-container-highest": "#d8e2ff",
+              "primary-fixed-dim": "#c6d3ff",
+              "on-tertiary-fixed": "#3f3a54",
+              "surface": "#f9f9ff",
+              "secondary-container": "#d6e3fb",
+              "secondary-dim": "#475467",
+              "surface-container-lowest": "#ffffff",
+              "on-tertiary": "#fcf7ff",
+              "surface-dim": "#cbdaff",
+              "primary-container": "#dae2ff",
+              "error": "#9f403d",
+              "secondary-fixed-dim": "#c8d5ec",
+              "primary-dim": "#004bb9",
+              "surface-container-high": "#e0e8ff",
+              "surface-tint": "#0056d2",
+              "error-container": "#fe8983",
+              "surface-variant": "#d8e2ff",
+              "on-background": "#143161",
+              "tertiary-fixed": "#e3dbfd",
+              "on-primary-container": "#004ab7",
+              "on-secondary-fixed": "#334052",
+              "background": "#f9f9ff",
+              "outline-variant": "#99b2e9",
+              "tertiary-fixed-dim": "#d5cdee",
+              "on-tertiary-container": "#524c68"
+            },
+            fontFamily: {
+              "headline": ["Manrope"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+          },
+        },
+      }
+    </script>
+<style>
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      }
+      .glass-effect {
+        background: rgba(249, 249, 255, 0.8);
+        backdrop-filter: blur(20px);
+      }
+      .custom-shadow {
+        box-shadow: 0 12px 40px rgba(20, 49, 97, 0.06);
+      }
+      .primary-gradient {
+        background: linear-gradient(135deg, #0056d2 0%, #004bb9 100%);
+      }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface font-body selection:bg-primary-container selection:text-on-primary-container">
+<!-- TopAppBar -->
+<header class="bg-slate-50 dark:bg-slate-950 fixed top-0 left-0 right-0 z-50 flex justify-between items-center w-full px-6 py-4 shadow-none">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-blue-700 dark:text-blue-400" data-icon="edit_note" style="">edit_note</span>
+<h1 class="font-manrope headline-sm font-semibold tracking-tight text-blue-700 dark:text-blue-400" style="">Athena</h1>
+</div>
+<div class="flex items-center gap-6">
+<nav class="hidden md:flex items-center gap-8">
+<a class="text-blue-700 dark:text-blue-400 font-bold font-label text-sm tracking-wide" href="#" style="">Builder</a>
+<a class="text-slate-500 dark:text-slate-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors px-3 py-1 rounded-lg font-label text-sm tracking-wide" href="#" style="">Responses</a>
+<a class="text-slate-500 dark:text-slate-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors px-3 py-1 rounded-lg font-label text-sm tracking-wide" href="#" style="">Analysis</a>
+</nav>
+<button class="primary-gradient text-on-primary px-6 py-2 rounded-xl font-semibold shadow-lg active:scale-95 duration-150 transition-all" style="">
+                Publish
+            </button>
+</div>
+</header>
+<div class="flex min-h-screen pt-16">
+<!-- NavigationDrawer / Sidebar -->
+<aside class="fixed left-0 top-0 h-full flex flex-col pt-16 bg-slate-50 dark:bg-slate-950 w-72 border-r-0 z-40">
+<div class="px-6 py-8">
+<h2 class="font-manrope font-bold text-blue-700 mb-6 uppercase tracking-widest text-xs" style="">Builder Tools</h2>
+<div class="space-y-1">
+<div class="flex items-center gap-3 bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-100 rounded-lg mx-2 px-4 py-3 transition-all duration-200 ease-in-out cursor-pointer">
+<span class="material-symbols-outlined" data-icon="add_circle" style="">add_circle</span>
+<span class="font-inter body-md font-medium" style="">Fields</span>
+</div>
+<div class="flex items-center gap-3 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800 mx-2 px-4 py-3 rounded-lg transition-all duration-200 ease-in-out cursor-pointer">
+<span class="material-symbols-outlined" data-icon="account_tree" style="">account_tree</span>
+<span class="font-inter body-md font-medium" style="">Logic</span>
+</div>
+<div class="flex items-center gap-3 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800 mx-2 px-4 py-3 rounded-lg transition-all duration-200 ease-in-out cursor-pointer">
+<span class="material-symbols-outlined" data-icon="settings" style="">settings</span>
+<span class="font-inter body-md font-medium" style="">Settings</span>
+</div>
+<div class="flex items-center gap-3 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800 mx-2 px-4 py-3 rounded-lg transition-all duration-200 ease-in-out cursor-pointer">
+<span class="material-symbols-outlined" data-icon="visibility" style="">visibility</span>
+<span class="font-inter body-md font-medium" style="">Preview</span>
+</div>
+</div>
+<div class="mt-10">
+<h3 class="font-manrope font-semibold text-on-surface-variant mb-4 px-2 text-sm" style="">Record Fields</h3>
+<div class="grid grid-cols-1 gap-3 px-2">
+<div class="bg-surface-container-lowest border border-blue-100/30 p-3 rounded-xl flex items-center gap-3 cursor-grab hover:bg-blue-50 transition-colors group">
+<span class="material-symbols-outlined text-outline group-hover:text-primary" data-icon="short_text" style="">short_text</span>
+<span class="text-sm font-medium" style="">Short Text</span>
+</div>
+<div class="bg-surface-container-lowest border border-blue-100/30 p-3 rounded-xl flex items-center gap-3 cursor-grab hover:bg-blue-50 transition-colors group">
+<span class="material-symbols-outlined text-outline group-hover:text-primary" data-icon="notes" style="">notes</span>
+<span class="text-sm font-medium" style="">Long Text</span>
+</div>
+<div class="bg-surface-container-lowest border border-blue-100/30 p-3 rounded-xl flex items-center gap-3 cursor-grab hover:bg-blue-50 transition-colors group">
+<span class="material-symbols-outlined text-outline group-hover:text-primary" data-icon="pin" style="">pin</span>
+<span class="text-sm font-medium" style="">Number</span>
+</div>
+<div class="bg-surface-container-lowest border border-blue-100/30 p-3 rounded-xl flex items-center gap-3 cursor-grab hover:bg-blue-50 transition-colors group">
+<span class="material-symbols-outlined text-outline group-hover:text-primary" data-icon="calendar_today" style="">calendar_today</span>
+<span class="text-sm font-medium" style="">Date</span>
+</div>
+<div class="bg-surface-container-lowest border border-blue-100/30 p-3 rounded-xl flex items-center gap-3 cursor-grab hover:bg-blue-50 transition-colors group">
+<span class="material-symbols-outlined text-outline group-hover:text-primary" data-icon="list" style="">list</span>
+<span class="text-sm font-medium" style="">Dropdown</span>
+</div>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="flex-1 ml-72 bg-surface p-12 overflow-y-auto">
+<div class="max-w-4xl mx-auto space-y-10">
+<!-- Form Header Card -->
+<div class="bg-surface-container-lowest rounded-3xl p-10 custom-shadow relative overflow-hidden">
+<div class="absolute top-0 left-0 w-full h-1 primary-gradient"></div>
+<div class="flex justify-between items-start mb-6">
+<div class="space-y-2">
+<h2 class="font-headline text-3xl font-extrabold text-on-surface tracking-tight" style="">Women's Health Survey Program</h2>
+<p class="text-on-surface-variant font-body" style="">Collect baseline indicators for the regional education initiative across Tier 1 districts.</p>
+</div>
+<div class="flex gap-2">
+<span class="bg-secondary-container text-on-secondary-container px-4 py-1 rounded-full text-xs font-bold uppercase tracking-widest" style="">Draft</span>
+</div>
+</div>
+</div>
+<!-- Form Builder Workspace (Bento Style) -->
+<div class="grid grid-cols-12 gap-6">
+<!-- First Field Placeholder (Active) -->
+<div class="col-span-12 bg-surface-container-lowest rounded-3xl p-8 custom-shadow border-2 border-primary ring-4 ring-primary-container/20">
+<div class="flex justify-between items-center mb-6">
+<div class="flex items-center gap-2">
+<span class="bg-primary-container text-primary w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm" style="">1</span>
+<span class="text-on-surface-variant font-medium text-sm" style="">Question Type: Short Text</span>
+</div>
+<div class="flex gap-2">
+<button class="p-2 text-outline hover:text-primary transition-colors" style="">
+<span class="material-symbols-outlined" data-icon="content_copy" style="">content_copy</span>
+</button>
+<button class="p-2 text-outline hover:text-error transition-colors" style="">
+<span class="material-symbols-outlined" data-icon="delete" style="">delete</span>
+</button>
+</div>
+</div>
+<div class="space-y-6">
+<div class="space-y-2">
+<label class="block text-sm font-bold text-on-surface" style="">Question Label</label>
+<input class="w-full bg-surface-container-low border-0 focus:ring-2 focus:ring-primary rounded-xl px-4 py-3 text-on-surface placeholder-on-surface-variant/50" type="text" value="Please enter the unique ID of the monitoring facility">
+</div>
+<div class="grid grid-cols-2 gap-6">
+<div class="space-y-2">
+<label class="block text-sm font-bold text-on-surface" style="">Helper Text (Optional)</label>
+<input class="w-full bg-surface-container-low border-0 focus:ring-2 focus:ring-primary rounded-xl px-4 py-3 text-on-surface" placeholder="e.g. Format FAC-000" type="text">
+</div>
+<div class="flex items-end gap-6 pb-2">
+<label class="flex items-center gap-3 cursor-pointer" style="">
+<input checked="" class="w-5 h-5 text-primary border-outline-variant rounded focus:ring-primary" type="checkbox">
+<span class="text-sm font-semibold text-on-surface" style="">Required</span>
+</label>
+<label class="flex items-center gap-3 cursor-pointer" style="">
+<input class="w-5 h-5 text-primary border-outline-variant rounded focus:ring-primary" type="checkbox">
+<span class="text-sm font-semibold text-on-surface" style="">Unique ID</span>
+</label>
+</div>
+</div>
+</div>
+</div>
+<!-- Drop Target / Empty State -->
+<div class="col-span-12 border-2 border-dashed border-outline-variant/30 rounded-3xl p-12 flex flex-col items-center justify-center bg-surface-container-low/30 group hover:bg-surface-container-low hover:border-primary/40 transition-all cursor-pointer">
+<div class="bg-surface-container-lowest w-16 h-16 rounded-full flex items-center justify-center custom-shadow mb-4 group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-primary text-3xl" data-icon="add" style="">add</span>
+</div>
+<h3 class="font-headline font-bold text-on-surface mb-2" style="">Add your next component</h3>
+<p class="text-on-surface-variant text-sm text-center max-w-xs" style="">Drag a field from the sidebar or click here to expand the form record.</p>
+</div>
+</div>
+<!-- Footer Summary (Glassmorphic) -->
+<div class="sticky bottom-8 bg-surface-container-lowest/80 backdrop-blur-xl border border-white/20 p-6 rounded-3xl custom-shadow flex items-center justify-between">
+<div class="flex items-center gap-6">
+<div class="space-y-1">
+<div class="flex items-center gap-2">
+<div class="w-32 h-1.5 bg-slate-200 rounded-full overflow-hidden">
+<div class="h-full bg-primary w-1/4"></div>
+</div>
+<span class="text-xs font-bold text-primary" style="">25% Complete</span>
+</div>
+<p class="text-[10px] uppercase tracking-wider text-on-surface-variant font-bold" style="">Progress Ribbon</p>
+</div>
+<div class="h-10 w-px bg-slate-200"></div>
+<div>
+<p class="text-xs text-on-surface-variant font-medium" style="">Estimated Completion Time</p>
+<p class="text-sm font-bold text-on-surface" style="">12 Minutes</p>
+</div>
+</div>
+<div class="flex gap-4">
+<button class="px-6 py-2 text-on-surface font-semibold border border-outline-variant/30 rounded-xl hover:bg-surface-container-low transition-all" style="">Save Draft</button>
+<button class="px-8 py-2 primary-gradient text-on-primary font-bold rounded-xl shadow-lg active:scale-95 transition-all" style="">Continue Build</button>
+</div>
+</div>
+</div>
+</main>
+</div>
+<!-- Mobile Navigation (Only visible on mobile) -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 py-3 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-t border-blue-100/20 shadow-[0_-12px_40px_rgba(20,49,97,0.06)]">
+<div class="flex flex-col items-center justify-center text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 rounded-xl px-4 py-1 scale-110 duration-300">
+<span class="material-symbols-outlined" data-icon="draft" style="">draft</span>
+<span class="font-inter text-[11px] uppercase tracking-wider font-bold mt-1" style="">Drafts</span>
+</div>
+<div class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 hover:text-blue-500 transition-all">
+<span class="material-symbols-outlined" data-icon="history" style="">history</span>
+<span class="font-inter text-[11px] uppercase tracking-wider font-bold mt-1" style="">History</span>
+</div>
+<div class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 hover:text-blue-500 transition-all">
+<span class="material-symbols-outlined" data-icon="layers" style="">layers</span>
+<span class="font-inter text-[11px] uppercase tracking-wider font-bold mt-1" style="">Templates</span>
+</div>
+</nav>
+</body></html>

@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Survey Analytics Dashboard</title>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-surface": "#143161",
+              "secondary": "#536073",
+              "primary-dim": "#004bb9",
+              "surface-variant": "#d8e2ff",
+              "primary-fixed-dim": "#c6d3ff",
+              "tertiary": "#615b77",
+              "error-container": "#fe8983",
+              "secondary-fixed": "#d6e3fb",
+              "outline": "#617aae",
+              "tertiary-fixed-dim": "#d5cdee",
+              "surface-tint": "#0056d2",
+              "background": "#f9f9ff",
+              "on-secondary": "#f8f8ff",
+              "primary-fixed": "#dae2ff",
+              "primary-container": "#dae2ff",
+              "on-primary-fixed-variant": "#0053cc",
+              "on-tertiary-container": "#524c68",
+              "on-error-container": "#752121",
+              "on-error": "#fff7f6",
+              "surface-container": "#e9edff",
+              "secondary-container": "#d6e3fb",
+              "surface-container-low": "#f1f3ff",
+              "on-tertiary-fixed-variant": "#5b5672",
+              "on-secondary-container": "#465365",
+              "on-surface-variant": "#455f90",
+              "tertiary-container": "#e3dbfd",
+              "tertiary-dim": "#55506b",
+              "tertiary-fixed": "#e3dbfd",
+              "primary": "#0056d2",
+              "on-secondary-fixed-variant": "#4f5c70",
+              "surface": "#f9f9ff",
+              "error": "#9f403d",
+              "secondary-dim": "#475467",
+              "on-primary": "#f8f7ff",
+              "on-secondary-fixed": "#334052",
+              "surface-bright": "#f9f9ff",
+              "on-tertiary": "#fcf7ff",
+              "secondary-fixed-dim": "#c8d5ec",
+              "surface-container-highest": "#d8e2ff",
+              "surface-dim": "#cbdaff",
+              "on-primary-container": "#004ab7",
+              "on-tertiary-fixed": "#3f3a54",
+              "on-primary-fixed": "#003991",
+              "on-background": "#143161",
+              "inverse-on-surface": "#959db2",
+              "inverse-surface": "#060e1e",
+              "surface-container-high": "#e0e8ff",
+              "outline-variant": "#99b2e9",
+              "inverse-primary": "#5b8cff",
+              "error-dim": "#4e0309",
+              "surface-container-lowest": "#ffffff"
+            },
+            fontFamily: {
+              "headline": ["Manrope"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background font-body text-on-surface antialiased min-h-screen pb-24">
+<!-- TopAppBar -->
+<header class="w-full top-0 sticky z-50 bg-[#f9f9ff] dark:bg-slate-950 flex justify-between items-center px-6 py-4 w-full">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-[#0056D2] dark:text-blue-400" data-icon="analytics">analytics</span>
+<h1 class="font-manrope headline-sm font-semibold tracking-tight text-xl font-bold text-[#143161] dark:text-white">Survey Analytics</h1>
+</div>
+<div class="flex items-center gap-4">
+<button class="hover:bg-[#e0e8ff] dark:hover:bg-slate-800 transition-colors duration-200 p-2 rounded-full active:scale-95 duration-150">
+<span class="material-symbols-outlined text-[#143161] dark:text-slate-400 opacity-70" data-icon="search">search</span>
+</button>
+</div>
+</header>
+<main class="px-6 space-y-8 pt-4">
+<!-- Summary Cards Section -->
+<section class="grid grid-cols-2 md:grid-cols-3 gap-4">
+<!-- Total Submissions -->
+<div class="col-span-2 md:col-span-1 bg-surface-container-lowest rounded-xl p-5 shadow-[0_-12px_40px_rgba(20,49,97,0.06)] relative overflow-hidden group">
+<div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary to-primary-dim"></div>
+<p class="text-on-surface-variant font-label text-[11px] font-medium tracking-wide uppercase">Total Submissions</p>
+<div class="mt-2 flex items-baseline gap-2">
+<span class="text-3xl font-headline font-extrabold text-on-surface">1,240</span>
+<span class="text-xs font-semibold text-primary flex items-center">
+<span class="material-symbols-outlined text-[14px]" data-icon="trending_up">trending_up</span> 12%
+                    </span>
+</div>
+<div class="mt-4 flex -space-x-2">
+<div class="w-6 h-6 rounded-full border-2 border-surface-container-lowest bg-surface-container" data-alt="User avatar placeholder"></div>
+<div class="w-6 h-6 rounded-full border-2 border-surface-container-lowest bg-surface-variant" data-alt="User avatar placeholder"></div>
+<div class="w-6 h-6 rounded-full border-2 border-surface-container-lowest bg-primary-container flex items-center justify-center text-[8px] font-bold text-primary">+8</div>
+</div>
+</div>
+<!-- Completion Rate -->
+<div class="bg-surface-container-lowest rounded-xl p-5 shadow-[0_-12px_40px_rgba(20,49,97,0.06)] relative overflow-hidden">
+<p class="text-on-surface-variant font-label text-[11px] font-medium tracking-wide uppercase">Completion Rate</p>
+<div class="mt-2">
+<span class="text-3xl font-headline font-extrabold text-on-surface">94%</span>
+</div>
+<div class="mt-4 bg-surface-container-low h-1.5 w-full rounded-full overflow-hidden">
+<div class="h-full bg-primary rounded-full" style="width: 94%"></div>
+</div>
+</div>
+<!-- Avg Time -->
+<div class="bg-surface-container-lowest rounded-xl p-5 shadow-[0_-12px_40px_rgba(20,49,97,0.06)] relative overflow-hidden">
+<p class="text-on-surface-variant font-label text-[11px] font-medium tracking-wide uppercase">Avg. Time</p>
+<div class="mt-2">
+<span class="text-3xl font-headline font-extrabold text-on-surface">14m</span>
+</div>
+<p class="text-[10px] text-secondary mt-4 font-medium italic">Per complete survey</p>
+</div>
+</section>
+<!-- Data Visualizations (Asymmetric Layout) -->
+<section class="grid grid-cols-1 md:grid-cols-5 gap-6">
+<!-- Weekly Submissions Bar Chart -->
+<div class="md:col-span-3 bg-surface-container-lowest rounded-xl p-6 shadow-[0_-12px_40px_rgba(20,49,97,0.06)]">
+<div class="flex justify-between items-center mb-6">
+<h3 class="font-headline font-bold text-on-surface tracking-tight">Weekly Activity</h3>
+<span class="text-[10px] font-bold text-primary bg-primary-container px-2 py-0.5 rounded-full">LIVE</span>
+</div>
+<div class="flex items-end justify-between h-40 gap-2 px-2">
+<div class="flex flex-col items-center gap-2 flex-1">
+<div class="w-full bg-surface-container-high rounded-t-lg transition-all duration-300 hover:bg-primary" style="height: 45%"></div>
+<span class="text-[10px] font-semibold text-secondary">M</span>
+</div>
+<div class="flex flex-col items-center gap-2 flex-1">
+<div class="w-full bg-surface-container-high rounded-t-lg transition-all duration-300 hover:bg-primary" style="height: 65%"></div>
+<span class="text-[10px] font-semibold text-secondary">T</span>
+</div>
+<div class="flex flex-col items-center gap-2 flex-1">
+<div class="w-full bg-surface-container-high rounded-t-lg transition-all duration-300 hover:bg-primary" style="height: 85%"></div>
+<span class="text-[10px] font-semibold text-secondary">W</span>
+</div>
+<div class="flex flex-col items-center gap-2 flex-1">
+<div class="w-full bg-primary rounded-t-lg" style="height: 100%"></div>
+<span class="text-[10px] font-semibold text-on-surface font-bold">T</span>
+</div>
+<div class="flex flex-col items-center gap-2 flex-1">
+<div class="w-full bg-surface-container-high rounded-t-lg transition-all duration-300 hover:bg-primary" style="height: 55%"></div>
+<span class="text-[10px] font-semibold text-secondary">F</span>
+</div>
+<div class="flex flex-col items-center gap-2 flex-1">
+<div class="w-full bg-surface-container-high rounded-t-lg transition-all duration-300 hover:bg-primary" style="height: 30%"></div>
+<span class="text-[10px] font-semibold text-secondary">S</span>
+</div>
+<div class="flex flex-col items-center gap-2 flex-1">
+<div class="w-full bg-surface-container-high rounded-t-lg transition-all duration-300 hover:bg-primary" style="height: 40%"></div>
+<span class="text-[10px] font-semibold text-secondary">S</span>
+</div>
+</div>
+</div>
+<!-- Crop Type Distribution Pie (Donut) -->
+<div class="md:col-span-2 bg-surface-container-lowest rounded-xl p-6 shadow-[0_-12px_40px_rgba(20,49,97,0.06)] flex flex-col items-center justify-center">
+<h3 class="font-headline font-bold text-on-surface tracking-tight self-start mb-4">Crop Type</h3>
+<div class="relative w-32 h-32 mb-6">
+<svg class="w-full h-full transform -rotate-90" viewbox="0 0 36 36">
+<circle cx="18" cy="18" fill="transparent" r="16" stroke="#dae2ff" stroke-width="4"></circle>
+<circle cx="18" cy="18" fill="transparent" r="16" stroke="#0056d2" stroke-dasharray="45, 100" stroke-width="4"></circle>
+<circle cx="18" cy="18" fill="transparent" r="16" stroke="#536073" stroke-dasharray="30, 100" stroke-dashoffset="-45" stroke-width="4"></circle>
+</svg>
+<div class="absolute inset-0 flex flex-col items-center justify-center">
+<span class="text-lg font-bold text-on-surface">3 Types</span>
+</div>
+</div>
+<div class="w-full space-y-2">
+<div class="flex justify-between items-center">
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-primary"></div>
+<span class="text-xs text-on-surface-variant font-medium">Maize</span>
+</div>
+<span class="text-xs font-bold">45%</span>
+</div>
+<div class="flex justify-between items-center">
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-secondary"></div>
+<span class="text-xs text-on-surface-variant font-medium">Wheat</span>
+</div>
+<span class="text-xs font-bold">30%</span>
+</div>
+<div class="flex justify-between items-center">
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-surface-container-high"></div>
+<span class="text-xs text-on-surface-variant font-medium">Soy</span>
+</div>
+<span class="text-xs font-bold">25%</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Recent Submissions List -->
+<section class="space-y-4">
+<div class="flex justify-between items-center">
+<h3 class="font-headline font-bold text-on-surface text-lg tracking-tight">Recent Submissions</h3>
+<button class="text-primary text-xs font-bold flex items-center gap-1 hover:underline">
+                    View All <span class="material-symbols-outlined text-[16px]" data-icon="chevron_right">chevron_right</span>
+</button>
+</div>
+<div class="space-y-3">
+<!-- Submission Item 1 -->
+<div class="bg-surface-container-lowest p-4 rounded-xl flex items-center justify-between shadow-[0_4px_20px_rgba(20,49,97,0.03)] group hover:bg-surface-container-low transition-colors duration-200">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center">
+<span class="material-symbols-outlined text-primary" data-icon="person">person</span>
+</div>
+<div>
+<h4 class="text-sm font-bold text-on-surface">Emmanuel Kojo</h4>
+<p class="text-[10px] text-secondary font-medium uppercase tracking-wider">Oct 24, 2023 • 09:45 AM</p>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<span class="px-2 py-1 rounded-md bg-[#e0e8ff] text-[#0056D2] text-[10px] font-bold uppercase">Verified</span>
+<span class="material-symbols-outlined text-outline-variant text-xl opacity-0 group-hover:opacity-100 transition-opacity" data-icon="more_vert">more_vert</span>
+</div>
+</div>
+<!-- Submission Item 2 -->
+<div class="bg-surface-container-lowest p-4 rounded-xl flex items-center justify-between shadow-[0_4px_20px_rgba(20,49,97,0.03)] group hover:bg-surface-container-low transition-colors duration-200">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center">
+<span class="material-symbols-outlined text-primary" data-icon="person">person</span>
+</div>
+<div>
+<h4 class="text-sm font-bold text-on-surface">Amara Nwosu</h4>
+<p class="text-[10px] text-secondary font-medium uppercase tracking-wider">Oct 24, 2023 • 08:30 AM</p>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<span class="px-2 py-1 rounded-md bg-[#e0e8ff] text-[#0056D2] text-[10px] font-bold uppercase">Verified</span>
+<span class="material-symbols-outlined text-outline-variant text-xl opacity-0 group-hover:opacity-100 transition-opacity" data-icon="more_vert">more_vert</span>
+</div>
+</div>
+<!-- Submission Item 3 -->
+<div class="bg-surface-container-lowest p-4 rounded-xl flex items-center justify-between shadow-[0_4px_20px_rgba(20,49,97,0.03)] group hover:bg-surface-container-low transition-colors duration-200">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center">
+<span class="material-symbols-outlined text-primary" data-icon="person">person</span>
+</div>
+<div>
+<h4 class="text-sm font-bold text-on-surface"> Kofi Mensah</h4>
+<p class="text-[10px] text-secondary font-medium uppercase tracking-wider">Oct 23, 2023 • 04:12 PM</p>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<span class="px-2 py-1 rounded-md bg-secondary-container text-on-secondary-container text-[10px] font-bold uppercase">Pending</span>
+<span class="material-symbols-outlined text-outline-variant text-xl opacity-0 group-hover:opacity-100 transition-opacity" data-icon="more_vert">more_vert</span>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center px-4 pb-6 pt-2 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl z-50 rounded-t-2xl shadow-[0_-12px_40px_rgba(20,49,97,0.06)]">
+<!-- Dashboard Item (Active) -->
+<a class="flex flex-col items-center justify-center bg-[#e0e8ff] dark:bg-blue-900/40 text-[#0056D2] dark:text-blue-100 rounded-xl px-5 py-1.5 active:scale-90 transition-transform" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard" style="font-variation-settings: 'FILL' 1;">dashboard</span>
+<span class="font-inter text-[11px] font-medium tracking-wide uppercase mt-1">Dashboard</span>
+</a>
+<!-- Submissions Item -->
+<a class="flex flex-col items-center justify-center text-slate-500 dark:text-slate-400 opacity-60 hover:opacity-100 hover:text-[#0056D2] active:scale-90 transition-transform" href="#">
+<span class="material-symbols-outlined" data-icon="list_alt">list_alt</span>
+<span class="font-inter text-[11px] font-medium tracking-wide uppercase mt-1">Submissions</span>
+</a>
+<!-- Reports Item -->
+<a class="flex flex-col items-center justify-center text-slate-500 dark:text-slate-400 opacity-60 hover:opacity-100 hover:text-[#0056D2] active:scale-90 transition-transform" href="#">
+<span class="material-symbols-outlined" data-icon="assessment">assessment</span>
+<span class="font-inter text-[11px] font-medium tracking-wide uppercase mt-1">Reports</span>
+</a>
+</nav>
+</body></html>

@@ -1,0 +1,14 @@
+# ── SvelteKit generated files ─────────────────────────────────
+.svelte-kit/
+
+# ── Production build output ───────────────────────────────────
+build/
+
+# ── Environment ───────────────────────────────────────────────
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# ── Vite cache ────────────────────────────────────────────────
+.vite/

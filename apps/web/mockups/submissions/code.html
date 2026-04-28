@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-secondary": "#f8f8ff",
+                    "on-background": "#143161",
+                    "primary-dim": "#004bb9",
+                    "surface": "#f9f9ff",
+                    "on-primary-fixed-variant": "#0053cc",
+                    "surface-variant": "#d8e2ff",
+                    "error-container": "#fe8983",
+                    "outline": "#617aae",
+                    "secondary-container": "#d6e3fb",
+                    "surface-container": "#e9edff",
+                    "on-tertiary-fixed-variant": "#5b5672",
+                    "on-error-container": "#752121",
+                    "on-error": "#fff7f6",
+                    "inverse-primary": "#5b8cff",
+                    "tertiary-fixed": "#e3dbfd",
+                    "background": "#f9f9ff",
+                    "primary-fixed-dim": "#c6d3ff",
+                    "on-primary-container": "#004ab7",
+                    "on-primary": "#f8f7ff",
+                    "secondary-fixed-dim": "#c8d5ec",
+                    "on-secondary-fixed-variant": "#4f5c70",
+                    "primary-container": "#dae2ff",
+                    "primary": "#0056d2",
+                    "on-surface-variant": "#455f90",
+                    "tertiary": "#615b77",
+                    "on-secondary-fixed": "#334052",
+                    "tertiary-fixed-dim": "#d5cdee",
+                    "surface-bright": "#f9f9ff",
+                    "on-surface": "#143161",
+                    "on-tertiary": "#fcf7ff",
+                    "on-secondary-container": "#465365",
+                    "on-tertiary-container": "#524c68",
+                    "secondary": "#536073",
+                    "on-primary-fixed": "#003991",
+                    "error": "#9f403d",
+                    "surface-tint": "#0056d2",
+                    "surface-container-lowest": "#ffffff",
+                    "inverse-surface": "#060e1e",
+                    "inverse-on-surface": "#959db2",
+                    "surface-container-highest": "#d8e2ff",
+                    "tertiary-dim": "#55506b",
+                    "tertiary-container": "#e3dbfd",
+                    "surface-dim": "#cbdaff",
+                    "secondary-fixed": "#d6e3fb",
+                    "primary-fixed": "#dae2ff",
+                    "error-dim": "#4e0309",
+                    "on-tertiary-fixed": "#3f3a54",
+                    "secondary-dim": "#475467",
+                    "surface-container-low": "#f1f3ff",
+                    "surface-container-high": "#e0e8ff",
+                    "outline-variant": "#99b2e9"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "fontFamily": {
+                    "headline": ["Manrope"],
+                    "display": ["Manrope"],
+                    "body": ["Inter"],
+                    "label": ["Inter"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        body { font-family: 'Inter', sans-serif; }
+        h1, h2, h3 { font-family: 'Manrope', sans-serif; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-background min-h-screen pb-24">
+<!-- TopAppBar -->
+<header class="w-full sticky top-0 z-40 bg-slate-50 dark:bg-slate-950">
+<div class="flex items-center justify-between px-6 py-4 w-full">
+<div class="flex items-center gap-4">
+<button class="active:scale-95 transition-transform duration-200 text-blue-700 dark:text-blue-400">
+<span class="material-symbols-outlined" data-icon="arrow_back">arrow_back</span>
+</button>
+<h1 class="font-['Manrope'] font-semibold text-lg tracking-tight text-blue-700 dark:text-blue-400">Submissions</h1>
+</div>
+<div class="flex items-center gap-2">
+<button class="active:scale-95 transition-transform duration-200 text-slate-600 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-slate-800/50 p-2 rounded-full transition-colors">
+<span class="material-symbols-outlined" data-icon="search">search</span>
+</button>
+</div>
+</div>
+</header>
+<main class="px-6 py-6 max-w-2xl mx-auto space-y-8">
+<!-- Filter Bar Section -->
+<section class="space-y-4">
+<div class="flex items-center justify-between">
+<h2 class="text-on-surface font-headline font-bold text-lg tracking-tight">Active Filters</h2>
+<button class="text-primary font-label text-sm font-semibold flex items-center gap-1">
+<span class="material-symbols-outlined text-base" data-icon="tune">tune</span>
+                    Refine
+                </button>
+</div>
+<div class="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1 no-scrollbar">
+<div class="bg-primary-container text-on-primary-container px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 shrink-0">
+<span class="material-symbols-outlined text-lg" data-icon="calendar_today">calendar_today</span>
+                    Last 30 Days
+                </div>
+<div class="bg-secondary-container text-on-secondary-container px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 shrink-0">
+<span class="material-symbols-outlined text-lg" data-icon="group">group</span>
+                    All Enumerators
+                </div>
+<div class="bg-secondary-container text-on-secondary-container px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 shrink-0">
+<span class="material-symbols-outlined text-lg" data-icon="fact_check">fact_check</span>
+                    Status
+                </div>
+</div>
+</section>
+<!-- Insights Bento Summary (Modern UI Pattern) -->
+<section class="grid grid-cols-2 gap-4">
+<div class="bg-surface-container-lowest p-5 rounded-xl border border-outline-variant/10 shadow-sm relative overflow-hidden">
+<div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary to-primary-dim opacity-40"></div>
+<p class="text-on-surface-variant font-label text-xs uppercase tracking-wider mb-1">Total Logs</p>
+<p class="text-on-surface font-headline font-extrabold text-2xl">1,284</p>
+</div>
+<div class="bg-surface-container-lowest p-5 rounded-xl border border-outline-variant/10 shadow-sm relative overflow-hidden">
+<p class="text-on-surface-variant font-label text-xs uppercase tracking-wider mb-1">Pending Review</p>
+<p class="text-error font-headline font-extrabold text-2xl">42</p>
+<div class="mt-2 flex items-center gap-1 text-[10px] text-error font-bold">
+<span class="material-symbols-outlined text-xs" data-icon="trending_up">trending_up</span>
+                    12% increase
+                </div>
+</div>
+</section>
+<!-- Submission List -->
+<section class="space-y-4">
+<div class="flex items-center justify-between mb-2">
+<h3 class="text-on-surface-variant font-label text-xs font-bold uppercase tracking-widest">Recent Activity</h3>
+<span class="text-on-surface-variant font-label text-xs">Sorted by Newest</span>
+</div>
+<!-- Card 1: Verified -->
+<div class="bg-surface-container-lowest p-5 rounded-xl border border-outline-variant/20 hover:shadow-md transition-all group cursor-pointer">
+<div class="flex justify-between items-start mb-3">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center text-primary font-bold">
+                            MA
+                        </div>
+<div>
+<h4 class="text-on-surface font-headline font-bold text-sm">Marcus Aurelius</h4>
+<p class="text-on-surface-variant text-xs">Enumerator: Sarah K.</p>
+</div>
+</div>
+<span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-[10px] font-extrabold flex items-center gap-1">
+<span class="material-symbols-outlined text-xs" data-icon="check_circle" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                        VERIFIED
+                    </span>
+</div>
+<div class="space-y-2">
+<div class="flex items-center gap-2 text-on-surface-variant">
+<span class="material-symbols-outlined text-sm" data-icon="assignment">assignment</span>
+<span class="text-xs font-medium">Agriculture Impact Survey</span>
+</div>
+<div class="flex items-center gap-2 text-on-surface-variant">
+<span class="material-symbols-outlined text-sm" data-icon="schedule">schedule</span>
+<span class="text-xs">Today, 09:42 AM</span>
+</div>
+</div>
+</div>
+<!-- Card 2: Pending -->
+<div class="bg-surface-container-lowest p-5 rounded-xl border border-outline-variant/20 hover:shadow-md transition-all group cursor-pointer">
+<div class="flex justify-between items-start mb-3">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center text-primary font-bold">
+                            LJ
+                        </div>
+<div>
+<h4 class="text-on-surface font-headline font-bold text-sm">Lydia Jenkins</h4>
+<p class="text-on-surface-variant text-xs">Enumerator: David W.</p>
+</div>
+</div>
+<span class="bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-[10px] font-extrabold flex items-center gap-1">
+<span class="material-symbols-outlined text-xs" data-icon="pending">pending</span>
+                        PENDING
+                    </span>
+</div>
+<div class="space-y-2">
+<div class="flex items-center gap-2 text-on-surface-variant">
+<span class="material-symbols-outlined text-sm" data-icon="assignment">assignment</span>
+<span class="text-xs font-medium">Market Access Audit</span>
+</div>
+<div class="flex items-center gap-2 text-on-surface-variant">
+<span class="material-symbols-outlined text-sm" data-icon="schedule">schedule</span>
+<span class="text-xs">Yesterday, 04:15 PM</span>
+</div>
+</div>
+</div>
+<!-- Card 3: Flagged -->
+<div class="bg-surface-container-lowest p-5 rounded-xl border border-outline-variant/20 hover:shadow-md transition-all group cursor-pointer relative">
+<div class="absolute left-0 top-1/4 bottom-1/4 w-1 bg-error rounded-r-full"></div>
+<div class="flex justify-between items-start mb-3">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center text-primary font-bold">
+                            RR
+                        </div>
+<div>
+<h4 class="text-on-surface font-headline font-bold text-sm">Robert Redford</h4>
+<p class="text-on-surface-variant text-xs">Enumerator: Sarah K.</p>
+</div>
+</div>
+<span class="bg-error-container/20 text-error px-3 py-1 rounded-full text-[10px] font-extrabold flex items-center gap-1">
+<span class="material-symbols-outlined text-xs" data-icon="warning" style="font-variation-settings: 'FILL' 1;">warning</span>
+                        FLAGGED
+                    </span>
+</div>
+<div class="space-y-2">
+<div class="flex items-center gap-2 text-on-surface-variant">
+<span class="material-symbols-outlined text-sm" data-icon="assignment">assignment</span>
+<span class="text-xs font-medium">Agriculture Impact Survey</span>
+</div>
+<div class="flex items-center gap-2 text-on-surface-variant">
+<span class="material-symbols-outlined text-sm" data-icon="schedule">schedule</span>
+<span class="text-xs">Oct 24, 11:20 AM</span>
+</div>
+</div>
+</div>
+<!-- Map Context Visual (Glassmorphism) -->
+<div class="relative h-40 w-full rounded-2xl overflow-hidden shadow-inner group">
+<img alt="Heatmap showing data density in a rural landscape" class="w-full h-full object-cover" data-alt="high contrast satellite map view of agricultural fields with colorful data points overlay indicating submission density" src="https://lh3.googleusercontent.com/aida-public/AB6AXuByhQYZAnqwBcEYFjsG5mj2tqSmj8rQJ_dljNgsYmIH-SjAV56-8VA8FfZ1GqMS22zTMsKaca2oehgc5ZW_eZtrRJI0FTqVNosK8w-rYnpVEbv3dDxCCbMRh30yJKNeQqyh4DytXwBp2Ep6mgfj1V_tljp14u7K_g5mYSsgfU05Dbvjv5SQk3QdU04pRkOTQClDWx21XE0Qb77dd9QtO1WOHqHGVkgkveC9aly41HRJ58t9SWP6PI20ZqmkVODAJK1pYySTTfOaVbjc"/>
+<div class="absolute inset-0 bg-gradient-to-t from-on-background/60 to-transparent"></div>
+<div class="absolute bottom-4 left-4 right-4 bg-white/10 backdrop-blur-md border border-white/20 p-3 rounded-xl flex justify-between items-center">
+<span class="text-white text-xs font-semibold">Geo-distribution view</span>
+<button class="bg-white text-on-background px-3 py-1 rounded-full text-[10px] font-bold">Open Maps</button>
+</div>
+</div>
+<!-- Card 4: Verified -->
+<div class="bg-surface-container-lowest p-5 rounded-xl border border-outline-variant/20 hover:shadow-md transition-all group cursor-pointer">
+<div class="flex justify-between items-start mb-3">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center text-primary font-bold">
+                            EM
+                        </div>
+<div>
+<h4 class="text-on-surface font-headline font-bold text-sm">Elena Martinez</h4>
+<p class="text-on-surface-variant text-xs">Enumerator: David W.</p>
+</div>
+</div>
+<span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-[10px] font-extrabold flex items-center gap-1">
+<span class="material-symbols-outlined text-xs" data-icon="check_circle" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                        VERIFIED
+                    </span>
+</div>
+<div class="space-y-2">
+<div class="flex items-center gap-2 text-on-surface-variant">
+<span class="material-symbols-outlined text-sm" data-icon="assignment">assignment</span>
+<span class="text-xs font-medium">Rural Education Survey</span>
+</div>
+<div class="flex items-center gap-2 text-on-surface-variant">
+<span class="material-symbols-outlined text-sm" data-icon="schedule">schedule</span>
+<span class="text-xs">Oct 23, 09:05 AM</span>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center px-4 pt-3 pb-6 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl z-50 border-t border-blue-100/20 shadow-[0_-12px_40px_rgba(20,49,97,0.06)]">
+<a class="flex flex-col items-center justify-center text-slate-500 dark:text-slate-400 px-5 py-2 active:scale-95 transition-transform duration-200 hover:text-blue-600 dark:hover:text-blue-300" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="dashboard">dashboard</span>
+<span class="font-['Inter'] text-[11px] font-medium tracking-wide">Dashboard</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-blue-100/50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-xl px-5 py-2 active:scale-95 transition-transform duration-200" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="assignment_turned_in" style="font-variation-settings: 'FILL' 1;">assignment_turned_in</span>
+<span class="font-['Inter'] text-[11px] font-medium tracking-wide">Submissions</span>
+</a>
+<a class="flex flex-col items-center justify-center text-slate-500 dark:text-slate-400 px-5 py-2 active:scale-95 transition-transform duration-200 hover:text-blue-600 dark:hover:text-blue-300" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="analytics">analytics</span>
+<span class="font-['Inter'] text-[11px] font-medium tracking-wide">Reports</span>
+</a>
+</nav>
+<!-- FAB (Suppressed on List View per Instruction but sometimes needed - keeping it as context if a new submission was the task, but hiding to prioritize the canvas as per shell rules) -->
+</body></html>

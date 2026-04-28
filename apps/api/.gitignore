@@ -1,0 +1,15 @@
+# ── API build output ─────────────────────────────────────────
+dist/
+*.tsbuildinfo
+
+# ── Environment ───────────────────────────────────────────────
+.env
+.env.local
+!.env.example
+
+# ── Logs ─────────────────────────────────────────────────────
+logs/
+*.log
+
+# ── Uploads (if local disk storage is ever used temporarily) ──
+uploads/

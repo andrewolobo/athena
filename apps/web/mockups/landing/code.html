@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Insight Ledger | Precision Monitoring &amp; Evaluation</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&amp;family=Inter:wght@400;500;600&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-error-container": "#752121",
+                    "on-tertiary": "#fcf7ff",
+                    "on-secondary-fixed": "#334052",
+                    "on-background": "#143161",
+                    "error-container": "#fe8983",
+                    "tertiary-dim": "#55506b",
+                    "surface-variant": "#d8e2ff",
+                    "on-secondary": "#f8f8ff",
+                    "surface-container-highest": "#d8e2ff",
+                    "on-secondary-fixed-variant": "#4f5c70",
+                    "secondary-fixed-dim": "#c8d5ec",
+                    "tertiary-container": "#e3dbfd",
+                    "surface-container": "#e9edff",
+                    "on-surface-variant": "#455f90",
+                    "on-primary-fixed-variant": "#0053cc",
+                    "on-tertiary-fixed": "#3f3a54",
+                    "on-surface": "#143161",
+                    "on-error": "#fff7f6",
+                    "tertiary": "#615b77",
+                    "primary-fixed-dim": "#c6d3ff",
+                    "surface-dim": "#cbdaff",
+                    "surface-bright": "#f9f9ff",
+                    "on-secondary-container": "#465365",
+                    "surface-container-low": "#f1f3ff",
+                    "secondary-fixed": "#d6e3fb",
+                    "surface-container-high": "#e0e8ff",
+                    "surface": "#f9f9ff",
+                    "tertiary-fixed-dim": "#d5cdee",
+                    "on-primary": "#f8f7ff",
+                    "background": "#f9f9ff",
+                    "surface-container-lowest": "#ffffff",
+                    "inverse-primary": "#5b8cff",
+                    "primary-container": "#dae2ff",
+                    "inverse-surface": "#060e1e",
+                    "error": "#9f403d",
+                    "primary-fixed": "#dae2ff",
+                    "on-tertiary-container": "#524c68",
+                    "on-tertiary-fixed-variant": "#5b5672",
+                    "secondary": "#536073",
+                    "primary": "#0056d2",
+                    "inverse-on-surface": "#959db2",
+                    "error-dim": "#4e0309",
+                    "outline-variant": "#99b2e9",
+                    "secondary-dim": "#475467",
+                    "secondary-container": "#d6e3fb",
+                    "surface-tint": "#0056d2",
+                    "primary-dim": "#004bb9",
+                    "on-primary-fixed": "#003991",
+                    "outline": "#617aae",
+                    "on-primary-container": "#004ab7",
+                    "tertiary-fixed": "#e3dbfd"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "fontFamily": {
+                    "headline": ["Manrope"],
+                    "display": ["Manrope"],
+                    "body": ["Inter"],
+                    "label": ["Inter"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .bg-gradient-primary {
+            background: linear-gradient(135deg, #0056d2 0%, #004bb9 100%);
+        }
+        .ambient-shadow {
+            box-shadow: 0 12px 40px rgba(20, 49, 97, 0.06);
+        }
+        .glass-panel {
+            background: rgba(249, 249, 255, 0.8);
+            backdrop-filter: blur(20px);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface font-body text-on-surface selection:bg-primary-container selection:text-on-primary-container">
+<!-- TopAppBar -->
+<nav class="fixed top-0 w-full z-50 bg-[#f9f9ff]/80 dark:bg-[#0a0c14]/80 backdrop-blur-xl shadow-[0_12px_40px_rgba(20,49,97,0.06)]">
+<div class="flex justify-between items-center max-w-7xl mx-auto px-8 h-20">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-[#0056D2] text-3xl" style="font-variation-settings: 'FILL' 1;">insights</span>
+<span class="text-2xl font-extrabold font-manrope text-[#0056D2] dark:text-[#4d8fff] tracking-tighter">Insight Ledger</span>
+</div>
+<div class="hidden md:flex items-center gap-8">
+<a class="text-[#0056D2] dark:text-[#4d8fff] border-b-2 border-[#0056D2] pb-1 font-manrope font-semibold tracking-tight transition-all duration-300" href="#">Home</a>
+<a class="text-[#143161] dark:text-[#99b2e9] font-medium hover:text-[#0056D2] dark:hover:text-[#4d8fff] transition-all duration-300" href="#">Solutions</a>
+<a class="text-[#143161] dark:text-[#99b2e9] font-medium hover:text-[#0056D2] dark:hover:text-[#4d8fff] transition-all duration-300" href="#">Case Studies</a>
+<a class="bg-gradient-primary text-on-primary px-6 py-2.5 rounded-xl font-semibold active:scale-95 transition-transform cursor-pointer" href="#">Request Demo</a>
+</div>
+<button class="md:hidden material-symbols-outlined text-on-surface">menu</button>
+</div>
+</nav>
+<main class="pt-20">
+<!-- Hero Section -->
+<section class="relative overflow-hidden pt-16 pb-24 md:pt-32 md:pb-40">
+<div class="max-w-7xl mx-auto px-8 grid md:grid-cols-2 gap-16 items-center">
+<div class="z-10">
+<div class="inline-flex items-center gap-2 px-3 py-1 bg-primary-container text-on-primary-container rounded-full text-xs font-bold tracking-widest uppercase mb-6">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">verified</span>
+                        The Standard in M&amp;E
+                    </div>
+<h1 class="text-5xl md:text-7xl font-extrabold font-headline leading-[1.1] text-on-surface tracking-tighter mb-8">
+                        Precision Data for <span class="text-primary">Impactful</span> Decisions
+                    </h1>
+<p class="text-lg md:text-xl text-on-surface-variant max-w-lg mb-10 leading-relaxed">
+                        Transform complex metrics into clear narratives. Our platform empowers global organizations to track, measure, and scale social impact with surgical accuracy.
+                    </p>
+<div class="flex flex-wrap gap-4">
+<button class="bg-gradient-primary text-on-primary px-8 py-4 rounded-xl font-bold text-lg ambient-shadow active:scale-95 transition-transform">Get Started</button>
+<button class="px-8 py-4 rounded-xl border border-outline-variant text-on-surface font-bold text-lg hover:bg-surface-container-low transition-colors">View Platform</button>
+</div>
+</div>
+<div class="relative">
+<div class="absolute -inset-4 bg-primary-container/20 blur-3xl rounded-full"></div>
+<div class="relative rounded-[32px] overflow-hidden ambient-shadow border border-white/50">
+<img alt="Data Dashboard" class="w-full h-full object-cover" data-alt="Modern clean data analytics dashboard showing complex graphs and charts with a cool blue professional color palette and high contrast interface" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCHH_MMAFTCJI5_cjoPFEfFHE_Ao_pxwXlpv9y1Ki-U4mJyqtSAG4thKDISy8RnOGC9_TR1r2p96rzg5OmgBe786uHR9azNQgDtOGi9dOZoz25BTIsILulh8JnhXR862aWixkb1ZlN1W0irtZtzQI4Aucszh016bXNMWkFEx1Kg4b4Tc0IoTGFr1aoNKZl-S_kNvWpvwXgYhC-01ZrO7O3l8oaN-p0sWADmqVAEugxO7Dc-SjUc7laNoQY9iwx5fl96Q2zWI0WgTaQt"/>
+<div class="absolute inset-0 bg-gradient-to-tr from-primary/10 to-transparent pointer-events-none"></div>
+</div>
+<!-- Floating Data Card -->
+<div class="absolute -bottom-6 -left-6 glass-panel p-6 rounded-2xl ambient-shadow hidden md:block border border-white/20">
+<div class="flex items-center gap-4 mb-4">
+<div class="p-3 bg-primary/10 rounded-xl">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">trending_up</span>
+</div>
+<div>
+<p class="text-xs font-bold text-on-surface-variant uppercase tracking-wider">Precision Rate</p>
+<p class="text-2xl font-black text-on-surface">99.9%</p>
+</div>
+</div>
+<div class="w-full bg-surface-container h-1.5 rounded-full overflow-hidden">
+<div class="bg-primary h-full w-[99%]"></div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Features Bento Grid -->
+<section class="py-24 bg-surface-container-low">
+<div class="max-w-7xl mx-auto px-8">
+<div class="text-center mb-20">
+<h2 class="text-4xl md:text-5xl font-black font-headline tracking-tighter mb-4">Built for Scale, Designed for Humans</h2>
+<p class="text-on-surface-variant text-lg max-w-2xl mx-auto">Precision tools that bridge the gap between field collection and board-room decisions.</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-12 gap-8">
+<!-- Form Builder Card -->
+<div class="md:col-span-8 bg-surface-container-lowest p-10 rounded-[32px] ambient-shadow flex flex-col justify-between group overflow-hidden relative">
+<div class="relative z-10">
+<div class="inline-flex p-4 bg-tertiary-container rounded-2xl mb-8 group-hover:scale-110 transition-transform duration-500">
+<span class="material-symbols-outlined text-on-tertiary-container text-3xl">dynamic_form</span>
+</div>
+<h3 class="text-3xl font-bold font-headline mb-4">Form Builder</h3>
+<p class="text-on-surface-variant text-lg max-w-md">Create complex surveys with ease. Drag-and-drop logic, nested repeats, and advanced validation rules without a single line of code.</p>
+</div>
+<div class="mt-12 flex justify-end">
+<img alt="Form Interface" class="w-2/3 h-48 object-cover rounded-tl-3xl opacity-80" data-alt="Abstract interface of a web form builder with sleek UI elements and nodes connecting different data points in blue and white" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCnvqAipUtACCOfo5wwXAvHZSYZFlqDu2_34Yd4vM0_3kSYUIhzZu5p9wUsQpcMBBXcyiGv2eOqkI6wv6artjXqQF3H6jIggIGCrY9PTVZDxsp99ZXUWseT1oCwNb_w-3z1E8RZSzhYrOCv65a6U4ukRR7yFV7VP7yqcSvAdxft1BWeoWtz_HgozYYLQ6ewwbELke5853ArQTyGKIY8_cDDN40KX1AR_guaP82mkYU22QcoBI6Q6iRkoC1xMHVUXfQkYHfFIZELLbls"/>
+</div>
+</div>
+<!-- Field Collection Card -->
+<div class="md:col-span-4 bg-surface-container-lowest p-10 rounded-[32px] ambient-shadow group">
+<div class="inline-flex p-4 bg-primary-container rounded-2xl mb-8 group-hover:rotate-12 transition-transform duration-500">
+<span class="material-symbols-outlined text-on-primary-container text-3xl">offline_pin</span>
+</div>
+<h3 class="text-2xl font-bold font-headline mb-4">Field Collection</h3>
+<p class="text-on-surface-variant leading-relaxed">Reliable offline-first mobile data entry. Sync automatically when back in range, ensuring no data point is ever lost.</p>
+<div class="mt-8 rounded-2xl overflow-hidden grayscale group-hover:grayscale-0 transition-all duration-700">
+<img alt="Mobile Collection" class="w-full h-40 object-cover" data-alt="Hand holding a smartphone in a remote outdoor field setting, using a clean mobile application for data entry" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDdx6DbUhboSSqoq9i_Ydb1oQeUqLnFn2-8VQ6H0wdwzT_9HejI4jzeYgnk0nWNFH4Reu7CxRV69VxHzbhEiWpwvFncKMFb1W79KReXHfbYAZy_jACzPAmNvFfoVZmi0yELuUIdtDqXIaOseWSK0kanY7u1CYGXnYlPy7E5dthDbh8JBe7-2LLmI-Nv8DJbm-qowj_auo3mYMEx-rJRIIRvHluVvN-VEeWczS-O8ozVv0b44YitJCNe2bARXYLZxZ5_DOpgp7o9zjhf"/>
+</div>
+</div>
+<!-- Analytics Card -->
+<div class="md:col-span-12 bg-on-surface p-10 rounded-[32px] ambient-shadow flex flex-col md:flex-row items-center gap-12 overflow-hidden relative">
+<div class="flex-1 text-surface">
+<div class="inline-flex p-4 bg-primary/20 rounded-2xl mb-8 border border-primary/30">
+<span class="material-symbols-outlined text-primary-dim text-3xl">analytics</span>
+</div>
+<h3 class="text-3xl font-bold font-headline mb-4">Insightful Analytics</h3>
+<p class="text-surface/70 text-lg mb-8">Real-time dashboards and reporting that highlight trends before they become risks. Automate your M&amp;E cycles with intelligent forecasting.</p>
+<button class="text-primary-dim font-bold flex items-center gap-2 hover:gap-4 transition-all">
+                                Explore Analytics <span class="material-symbols-outlined">arrow_forward</span>
+</button>
+</div>
+<div class="flex-1 w-full">
+<div class="bg-surface/5 rounded-2xl p-6 backdrop-blur-md border border-surface/10">
+<img alt="Analytics" class="w-full rounded-xl" data-alt="Close up of high precision data visualization charts on a dark interface with glowing neon blue indicators" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDb9u2Ucoqg03_Qh8U-l9QPkaBbHWStxz2WDxXPcYdDmyeN4XJAL1hNH-8CJ8hKMH0n4h9Djmjg7ek3nFtZdTepJgX07Di9LYSlBY7CDv2lpfzealm47E8fDmsz13PUJGldB-D3D0hIORbxfpDmxEmZEwvpmwPYZXzwTMhaPje4gP8Ms9lty5fGYmBS9cKb7SRI5sBUes9lLmM0lrHsdcK-GJC30FqkB7FfiyinAyXi26IIBBJtOKgibUETsar80DuuPQTQF88YeW2f"/>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Social Proof -->
+<section class="py-24 bg-surface">
+<div class="max-w-7xl mx-auto px-8">
+<div class="text-center mb-16">
+<p class="text-primary font-bold tracking-widest uppercase text-sm mb-4">Trusted Authority</p>
+<h2 class="text-3xl md:text-4xl font-black font-headline text-on-surface">Trusted by global NGOs and development agencies</h2>
+</div>
+<div class="flex flex-wrap justify-center items-center gap-12 md:gap-20 opacity-50 grayscale hover:grayscale-0 transition-all duration-500">
+<div class="h-8 md:h-12 w-32 bg-on-surface/20 rounded-md"></div>
+<div class="h-8 md:h-12 w-32 bg-on-surface/20 rounded-md"></div>
+<div class="h-8 md:h-12 w-32 bg-on-surface/20 rounded-md"></div>
+<div class="h-8 md:h-12 w-32 bg-on-surface/20 rounded-md"></div>
+<div class="h-8 md:h-12 w-32 bg-on-surface/20 rounded-md"></div>
+</div>
+</div>
+</section>
+<!-- Final CTA -->
+<section class="py-24 px-8">
+<div class="max-w-5xl mx-auto rounded-[40px] bg-gradient-primary p-12 md:p-24 text-center relative overflow-hidden shadow-2xl">
+<div class="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -mr-32 -mt-32"></div>
+<div class="absolute bottom-0 left-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -ml-32 -mb-32"></div>
+<h2 class="text-4xl md:text-6xl font-black font-headline text-on-primary mb-8 relative z-10 leading-tight">
+                    Join the Precision Revolution
+                </h2>
+<p class="text-on-primary/80 text-xl max-w-2xl mx-auto mb-12 relative z-10">
+                    Empower your mission with data that tells the whole story. Start your free pilot today.
+                </p>
+<div class="flex flex-col md:flex-row justify-center gap-6 relative z-10">
+<button class="bg-surface text-primary px-10 py-5 rounded-2xl font-black text-xl hover:bg-surface-container transition-colors">Start Free Trial</button>
+<button class="bg-transparent text-on-primary border border-on-primary/30 px-10 py-5 rounded-2xl font-black text-xl hover:bg-white/10 transition-colors">Talk to Sales</button>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="w-full rounded-t-[32px] bg-[#f1f3ff] dark:bg-[#0d121f] transition-opacity hover:opacity-80">
+<div class="max-w-7xl mx-auto px-8 py-16 flex flex-col md:flex-row justify-between items-center gap-8">
+<div class="flex flex-col items-center md:items-start gap-4">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[#0056D2]" style="font-variation-settings: 'FILL' 1;">insights</span>
+<span class="font-manrope font-bold text-[#143161] dark:text-[#f9f9ff] text-xl">Insight Ledger</span>
+</div>
+<p class="font-inter text-sm text-[#143161]/70 dark:text-[#99b2e9]/70">© 2024 Insight Ledger. Precision in every metric.</p>
+</div>
+<div class="flex flex-wrap justify-center gap-8">
+<a class="text-[#143161] dark:text-[#99b2e9] font-medium hover:text-[#0056D2] underline decoration-2 underline-offset-4" href="#">Form Builder</a>
+<a class="text-[#143161] dark:text-[#99b2e9] font-medium hover:text-[#0056D2] underline decoration-2 underline-offset-4" href="#">Field Collection</a>
+<a class="text-[#143161] dark:text-[#99b2e9] font-medium hover:text-[#0056D2] underline decoration-2 underline-offset-4" href="#">Analytics</a>
+<a class="text-[#143161] dark:text-[#99b2e9] font-medium hover:text-[#0056D2] underline decoration-2 underline-offset-4" href="#">Security</a>
+<a class="text-[#143161] dark:text-[#99b2e9] font-medium hover:text-[#0056D2] underline decoration-2 underline-offset-4" href="#">Privacy</a>
+</div>
+<div class="flex gap-4">
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:text-primary transition-colors">public</span>
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:text-primary transition-colors">share</span>
+</div>
+</div>
+</footer>
+</body></html>

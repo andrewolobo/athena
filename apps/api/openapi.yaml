@@ -1,0 +1,1162 @@
+openapi: "3.1.0"
+info:
+  title: ATHENA M&E Platform API
+  version: "0.1.0"
+  description: |
+    Backend API for the ATHENA Monitoring & Evaluation platform.
+    All endpoints (except /health and /auth/*) require a valid
+    JWT issued via OAuth SSO, carried as an HttpOnly cookie
+    (`athena_session`) or an `Authorization: Bearer <token>` header.
+
+servers:
+  - url: http://localhost:3000
+    description: Local development
+  - url: https://your.domain.com
+    description: Production
+
+# ── Security scheme ───────────────────────────────────────────
+components:
+  securitySchemes:
+    sessionCookie:
+      type: apiKey
+      in: cookie
+      name: athena_session
+
+  # ── Reusable schemas ────────────────────────────────────────
+  schemas:
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: string
+
+    UUID:
+      type: string
+      format: uuid
+
+    ISOTimestamp:
+      type: string
+      format: date-time
+
+    Role:
+      type: string
+      enum: [admin, supervisor, enumerator]
+
+    SubmissionStatus:
+      type: string
+      enum: [pending, approved, quarantined, flagged]
+
+    Organization:
+      type: object
+      properties:
+        id: { $ref: "#/components/schemas/UUID" }
+        name: { type: string }
+        slug: { type: string }
+        country: { type: string }
+        created_at: { $ref: "#/components/schemas/ISOTimestamp" }
+
+    User:
+      type: object
+      properties:
+        id: { $ref: "#/components/schemas/UUID" }
+        org_id: { $ref: "#/components/schemas/UUID" }
+        email: { type: string, format: email }
+        display_name: { type: string }
+        role: { $ref: "#/components/schemas/Role" }
+        is_active: { type: boolean }
+        created_at: { $ref: "#/components/schemas/ISOTimestamp" }
+
+    AuthUser:
+      type: object
+      properties:
+        id: { $ref: "#/components/schemas/UUID" }
+        email: { type: string, format: email }
+        role: { $ref: "#/components/schemas/Role" }
+        org_id: { $ref: "#/components/schemas/UUID" }
+
+    Entity:
+      type: object
+      properties:
+        id: { $ref: "#/components/schemas/UUID" }
+        org_id: { $ref: "#/components/schemas/UUID" }
+        entity_type: { type: string }
+        external_id: { type: string, nullable: true }
+        registered_at: { $ref: "#/components/schemas/ISOTimestamp" }
+        metadata: { type: object, additionalProperties: true }
+
+    Form:
+      type: object
+      properties:
+        id: { $ref: "#/components/schemas/UUID" }
+        org_id: { $ref: "#/components/schemas/UUID" }
+        folder_schema: { type: string }
+        form_key: { type: string }
+        display_name: { type: string }
+        current_version: { type: integer }
+        is_active: { type: boolean }
+        created_at: { $ref: "#/components/schemas/ISOTimestamp" }
+
+    QuarantineEntry:
+      type: object
+      properties:
+        id: { $ref: "#/components/schemas/UUID" }
+        org_id: { $ref: "#/components/schemas/UUID" }
+        raw_payload: { type: object, additionalProperties: true }
+        entity_id: { $ref: "#/components/schemas/UUID", nullable: true }
+        form_id: { $ref: "#/components/schemas/UUID", nullable: true }
+        failure_reason:
+          type: string
+          enum:
+            [freshness_violation, duplicate_entity, invalid_gps, schema_error]
+        failure_detail:
+          { type: object, additionalProperties: true, nullable: true }
+        resolved: { type: boolean }
+        queued_at: { $ref: "#/components/schemas/ISOTimestamp" }
+
+    Conflict:
+      type: object
+      properties:
+        id: { $ref: "#/components/schemas/UUID" }
+        org_id: { $ref: "#/components/schemas/UUID" }
+        entity_id: { $ref: "#/components/schemas/UUID" }
+        form_id: { $ref: "#/components/schemas/UUID" }
+        canonical_submission_id:
+          { $ref: "#/components/schemas/UUID", nullable: true }
+        canonical_table: { type: string, nullable: true }
+        branch_payload: { type: object, additionalProperties: true }
+        resolved: { type: boolean }
+        created_at: { $ref: "#/components/schemas/ISOTimestamp" }
+
+    Indicator:
+      type: object
+      properties:
+        id: { $ref: "#/components/schemas/UUID" }
+        org_id: { $ref: "#/components/schemas/UUID" }
+        code: { type: string }
+        name: { type: string }
+        unit_of_measure: { type: string, nullable: true }
+        baseline_value: { type: number, nullable: true }
+        annual_target: { type: number, nullable: true }
+        reporting_period_start: { type: string, format: date, nullable: true }
+        reporting_period_end: { type: string, format: date, nullable: true }
+        source_form_id: { $ref: "#/components/schemas/UUID", nullable: true }
+        source_field_path: { type: string, nullable: true }
+        aggregation_fn:
+          type: string
+          enum: [count, sum, avg, count_distinct]
+          nullable: true
+
+    Notification:
+      type: object
+      properties:
+        id: { $ref: "#/components/schemas/UUID" }
+        org_id: { $ref: "#/components/schemas/UUID" }
+        user_id: { $ref: "#/components/schemas/UUID", nullable: true }
+        type: { type: string }
+        title: { type: string }
+        body: { type: string, nullable: true }
+        reference_id: { $ref: "#/components/schemas/UUID", nullable: true }
+        reference_table: { type: string, nullable: true }
+        is_read: { type: boolean }
+        created_at: { $ref: "#/components/schemas/ISOTimestamp" }
+
+    Pagination:
+      type: object
+      properties:
+        total: { type: integer }
+        page: { type: integer }
+        limit: { type: integer }
+        pages: { type: integer }
+
+  # ── Reusable responses ──────────────────────────────────────
+  responses:
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+    Forbidden:
+      description: Insufficient role
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+    UnprocessableEntity:
+      description: Validation failed
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+
+# ── Default security (override per-endpoint where needed) ─────
+security:
+  - sessionCookie: []
+
+# ── Paths ─────────────────────────────────────────────────────
+paths:
+  # ── Health ──────────────────────────────────────────────────
+  /health:
+    get:
+      operationId: getHealth
+      summary: API and database health check
+      security: [] # public
+      tags: [System]
+      responses:
+        "200":
+          description: System healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string, enum: [ok, degraded] }
+                  db: { type: string, enum: [ok, error] }
+                  uptime:
+                    { type: integer, description: Seconds since process start }
+                  memoryMb: { type: integer }
+                  version: { type: string }
+                  timestamp: { $ref: "#/components/schemas/ISOTimestamp" }
+        "503":
+          description: System degraded (DB unreachable)
+
+  # ── Auth ────────────────────────────────────────────────────
+  /auth/google:
+    get:
+      operationId: loginGoogle
+      summary: Redirect to Google OIDC authorization
+      security: []
+      tags: [Auth]
+      responses:
+        "302": { description: Redirect to Google }
+
+  /auth/microsoft:
+    get:
+      operationId: loginMicrosoft
+      summary: Redirect to Microsoft OIDC authorization
+      security: []
+      tags: [Auth]
+      responses:
+        "302": { description: Redirect to Microsoft }
+
+  /auth/callback/{provider}:
+    get:
+      operationId: authCallback
+      summary: OAuth callback — exchange code, set session cookie
+      security: []
+      tags: [Auth]
+      parameters:
+        - name: provider
+          in: path
+          required: true
+          schema: { type: string, enum: [google, microsoft] }
+        - name: code
+          in: query
+          required: true
+          schema: { type: string }
+        - name: state
+          in: query
+          schema: { type: string }
+      responses:
+        "302":
+          description: Redirect to dashboard after successful login
+          headers:
+            Set-Cookie:
+              schema:
+                {
+                  type: string,
+                  description: "athena_session=<jwt>; HttpOnly; SameSite=Strict",
+                }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+
+  /auth/logout:
+    post:
+      operationId: logout
+      summary: Clear session cookie and invalidate session
+      tags: [Auth]
+      responses:
+        "204": { description: Logged out }
+
+  /auth/me:
+    get:
+      operationId: getMe
+      summary: Return current authenticated user
+      tags: [Auth]
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AuthUser" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+
+  # ── Organisation ─────────────────────────────────────────────
+  /org:
+    get:
+      operationId: getOrg
+      summary: Get organisation details
+      tags: [Organisation]
+      x-roles: [admin, supervisor]
+      responses:
+        "200":
+          description: Organisation record
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Organization" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+
+    put:
+      operationId: updateOrg
+      summary: Update organisation name or slug
+      tags: [Organisation]
+      x-roles: [admin]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: { type: string }
+                slug: { type: string }
+                country: { type: string }
+      responses:
+        "200":
+          description: Updated organisation
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Organization" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+
+  /org/users:
+    get:
+      operationId: listUsers
+      summary: List all users in the organisation
+      tags: [Organisation]
+      x-roles: [admin]
+      responses:
+        "200":
+          description: User list
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/User" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+
+    post:
+      operationId: inviteUser
+      summary: Invite a new user (creates inactive record, sends email)
+      tags: [Organisation]
+      x-roles: [admin]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, role]
+              properties:
+                email: { type: string, format: email }
+                role: { $ref: "#/components/schemas/Role" }
+      responses:
+        "201":
+          description: User invited
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/User" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+
+  /org/users/{id}/role:
+    patch:
+      operationId: updateUserRole
+      summary: Change a user's role
+      tags: [Organisation]
+      x-roles: [admin]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { $ref: "#/components/schemas/UUID" }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [role]
+              properties:
+                role: { $ref: "#/components/schemas/Role" }
+      responses:
+        "200":
+          description: Updated user
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/User" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /org/users/{id}:
+    delete:
+      operationId: deactivateUser
+      summary: Deactivate a user (sets is_active = false)
+      tags: [Organisation]
+      x-roles: [admin]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { $ref: "#/components/schemas/UUID" }
+      responses:
+        "204": { description: User deactivated }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  # ── Entities ─────────────────────────────────────────────────
+  /entities:
+    get:
+      operationId: listEntities
+      summary: Paginated list of entities
+      tags: [Entities]
+      x-roles: [admin, supervisor]
+      parameters:
+        - name: entity_type
+          in: query
+          schema: { type: string }
+        - name: registered_after
+          in: query
+          schema: { type: string, format: date-time }
+        - name: search
+          in: query
+          schema: { type: string }
+        - name: page
+          in: query
+          schema: { type: integer, default: 1 }
+        - name: limit
+          in: query
+          schema: { type: integer, default: 50, maximum: 200 }
+      responses:
+        "200":
+          description: Paginated entities
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    {
+                      type: array,
+                      items: { $ref: "#/components/schemas/Entity" },
+                    }
+                  pagination: { $ref: "#/components/schemas/Pagination" }
+
+    post:
+      operationId: createEntity
+      summary: Register a new entity
+      tags: [Entities]
+      x-roles: [admin, supervisor, enumerator]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [entity_type]
+              properties:
+                entity_type: { type: string }
+                external_id: { type: string }
+                metadata: { type: object, additionalProperties: true }
+      responses:
+        "201":
+          description: Entity created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Entity" }
+        "422": { $ref: "#/components/responses/UnprocessableEntity" }
+
+  /entities/sync:
+    get:
+      operationId: syncEntities
+      summary: Delta sync for Android clients
+      tags: [Entities]
+      x-roles: [admin, supervisor, enumerator]
+      parameters:
+        - name: since
+          in: query
+          required: true
+          schema: { type: string, format: date-time }
+      responses:
+        "200":
+          description: Entities created or updated after the given timestamp
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Entity" }
+
+  /entities/{id}:
+    get:
+      operationId: getEntity
+      summary: Get a single entity
+      tags: [Entities]
+      x-roles: [admin, supervisor]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { $ref: "#/components/schemas/UUID" }
+      responses:
+        "200":
+          description: Entity record
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Entity" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  # ── Forms ─────────────────────────────────────────────────────
+  /forms:
+    get:
+      operationId: listForms
+      summary: List all active forms grouped by folder schema
+      tags: [Forms]
+      x-roles: [admin, supervisor]
+      responses:
+        "200":
+          description: Forms list
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Form" }
+
+    post:
+      operationId: createForm
+      summary: Upload an XLSForm XLSX and create a new form
+      tags: [Forms]
+      x-roles: [admin]
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file, folder_schema, form_key, display_name]
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: XLSForm XLSX file
+                folder_schema: { type: string }
+                form_key: { type: string }
+                display_name: { type: string }
+      responses:
+        "201":
+          description: Form created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Form" }
+        "422": { $ref: "#/components/responses/UnprocessableEntity" }
+
+  /forms/{id}:
+    get:
+      operationId: getForm
+      summary: Get form detail with current version definition
+      tags: [Forms]
+      x-roles: [admin, supervisor]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { $ref: "#/components/schemas/UUID" }
+      responses:
+        "200":
+          description: Form with xlsform_json
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - { $ref: "#/components/schemas/Form" }
+                  - type: object
+                    properties:
+                      xlsform_json: { type: object, additionalProperties: true }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+    delete:
+      operationId: deactivateForm
+      summary: Deactivate a form (sets is_active = false)
+      tags: [Forms]
+      x-roles: [admin]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { $ref: "#/components/schemas/UUID" }
+      responses:
+        "204": { description: Form deactivated }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /forms/{id}/definition:
+    get:
+      operationId: getFormDefinition
+      summary: Download xlsform_json for Android offline use
+      tags: [Forms]
+      x-roles: [admin, supervisor, enumerator]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { $ref: "#/components/schemas/UUID" }
+      responses:
+        "200":
+          description: XLSForm definition
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /forms/{id}/versions:
+    post:
+      operationId: publishFormVersion
+      summary: Publish a new version of a form
+      tags: [Forms]
+      x-roles: [admin]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { $ref: "#/components/schemas/UUID" }
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        "201":
+          description: New version published
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Form" }
+        "422": { $ref: "#/components/responses/UnprocessableEntity" }
+
+  # ── Ingestion (OpenRosa 1.0) ──────────────────────────────────
+  /submissions:
+    head:
+      operationId: submissionCapability
+      summary: OpenRosa capability discovery
+      tags: [Ingestion]
+      x-roles: [admin, supervisor, enumerator]
+      responses:
+        "204":
+          description: Server is OpenRosa capable
+          headers:
+            X-OpenRosa-Version:
+              schema: { type: string, example: "1.0" }
+
+    post:
+      operationId: ingestSubmission
+      summary: Ingest a form submission (OpenRosa 1.0 multipart)
+      tags: [Ingestion]
+      x-roles: [admin, supervisor, enumerator]
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [xml_submission_file]
+              properties:
+                xml_submission_file:
+                  type: string
+                  format: binary
+                  description: XLSForm metadata XML
+                payload:
+                  type: string
+                  description: JSON survey answers
+      responses:
+        "202":
+          description: Submission accepted (written to sector table or quarantined)
+        "409":
+          description: Conflict detected — written to submission_conflicts
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "422":
+          description: Payload structure invalid
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  # ── Quarantine ────────────────────────────────────────────────
+  /quarantine:
+    get:
+      operationId: listQuarantine
+      summary: List unresolved quarantine entries
+      tags: [Quality]
+      x-roles: [admin, supervisor]
+      parameters:
+        - name: failure_reason
+          in: query
+          schema:
+            type: string
+            enum:
+              [freshness_violation, duplicate_entity, invalid_gps, schema_error]
+        - name: form_id
+          in: query
+          schema: { $ref: "#/components/schemas/UUID" }
+        - name: page
+          in: query
+          schema: { type: integer, default: 1 }
+        - name: limit
+          in: query
+          schema: { type: integer, default: 50 }
+      responses:
+        "200":
+          description: Quarantine entries
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    {
+                      type: array,
+                      items: { $ref: "#/components/schemas/QuarantineEntry" },
+                    }
+                  pagination: { $ref: "#/components/schemas/Pagination" }
+
+  /quarantine/{id}/resolve:
+    post:
+      operationId: resolveQuarantine
+      summary: Approve a quarantine entry — re-runs DQA and writes to sector table
+      tags: [Quality]
+      x-roles: [admin, supervisor]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { $ref: "#/components/schemas/UUID" }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                resolution_note: { type: string }
+      responses:
+        "200": { description: Entry resolved and written to sector table }
+        "422": { $ref: "#/components/responses/UnprocessableEntity" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /quarantine/{id}/reject:
+    post:
+      operationId: rejectQuarantine
+      summary: Permanently reject a quarantine entry
+      tags: [Quality]
+      x-roles: [admin, supervisor]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { $ref: "#/components/schemas/UUID" }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [resolution_note]
+              properties:
+                resolution_note: { type: string }
+      responses:
+        "204": { description: Entry rejected }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  # ── Conflicts ─────────────────────────────────────────────────
+  /conflicts:
+    get:
+      operationId: listConflicts
+      summary: List unresolved submission conflicts
+      tags: [Quality]
+      x-roles: [admin, supervisor]
+      responses:
+        "200":
+          description: Conflict list
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Conflict" }
+
+  /conflicts/{id}:
+    get:
+      operationId: getConflict
+      summary: Get canonical and branch payloads side-by-side
+      tags: [Quality]
+      x-roles: [admin, supervisor]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { $ref: "#/components/schemas/UUID" }
+      responses:
+        "200":
+          description: Conflict detail
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Conflict" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /conflicts/{id}/resolve:
+    post:
+      operationId: resolveConflict
+      summary: Resolve a conflict via merge strategy
+      tags: [Quality]
+      x-roles: [admin, supervisor]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { $ref: "#/components/schemas/UUID" }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [merge_strategy]
+              properties:
+                merge_strategy:
+                  type: string
+                  enum: [accept_branch, keep_canonical, manual_merge]
+                merged_payload:
+                  type: object
+                  additionalProperties: true
+                  description: Required when merge_strategy = manual_merge
+      responses:
+        "200": { description: Conflict resolved }
+        "422": { $ref: "#/components/responses/UnprocessableEntity" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  # ── Indicators ────────────────────────────────────────────────
+  /indicators:
+    get:
+      operationId: listIndicators
+      summary: List all indicators with latest actuals
+      tags: [Indicators]
+      x-roles: [admin, supervisor]
+      responses:
+        "200":
+          description: Indicators
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Indicator" }
+
+    post:
+      operationId: createIndicator
+      summary: Create a SMART indicator
+      tags: [Indicators]
+      x-roles: [admin]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/Indicator" }
+      responses:
+        "201":
+          description: Indicator created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Indicator" }
+        "422": { $ref: "#/components/responses/UnprocessableEntity" }
+
+  /indicators/{id}:
+    get:
+      operationId: getIndicator
+      summary: Get indicator detail with all actuals
+      tags: [Indicators]
+      x-roles: [admin, supervisor]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { $ref: "#/components/schemas/UUID" }
+      responses:
+        "200":
+          description: Indicator with actuals
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - { $ref: "#/components/schemas/Indicator" }
+                  - type: object
+                    properties:
+                      actuals:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            period_start: { type: string, format: date }
+                            period_end: { type: string, format: date }
+                            actual_value: { type: number }
+                            computed_at:
+                              { $ref: "#/components/schemas/ISOTimestamp" }
+
+  /indicators/{id}/compute:
+    post:
+      operationId: computeIndicatorActuals
+      summary: On-demand SQL aggregation — compute actual value for this indicator
+      tags: [Indicators]
+      x-roles: [admin]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { $ref: "#/components/schemas/UUID" }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [period_start, period_end]
+              properties:
+                period_start: { type: string, format: date }
+                period_end: { type: string, format: date }
+      responses:
+        "200":
+          description: Computed actual value
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  actual_value: { type: number }
+                  computed_at: { $ref: "#/components/schemas/ISOTimestamp" }
+
+  # ── Reporting ─────────────────────────────────────────────────
+  /reporting/submissions:
+    get:
+      operationId: listSubmissions
+      summary: Paginated, filterable submissions from a sector reporting view
+      tags: [Reporting]
+      x-roles: [admin, supervisor]
+      parameters:
+        - name: folder_schema
+          in: query
+          required: true
+          schema: { type: string }
+        - name: form_key
+          in: query
+          required: true
+          schema: { type: string }
+        - name: status
+          in: query
+          schema: { $ref: "#/components/schemas/SubmissionStatus" }
+        - name: entity_id
+          in: query
+          schema: { $ref: "#/components/schemas/UUID" }
+        - name: enumerator_id
+          in: query
+          schema: { $ref: "#/components/schemas/UUID" }
+        - name: date_from
+          in: query
+          schema: { type: string, format: date-time }
+        - name: date_to
+          in: query
+          schema: { type: string, format: date-time }
+        - name: page
+          in: query
+          schema: { type: integer, default: 1 }
+        - name: limit
+          in: query
+          schema: { type: integer, default: 50, maximum: 200 }
+      responses:
+        "200":
+          description: Flattened submission rows from the sector view
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    {
+                      type: array,
+                      items: { type: object, additionalProperties: true },
+                    }
+                  pagination: { $ref: "#/components/schemas/Pagination" }
+
+  /reporting/submissions/{id}:
+    get:
+      operationId: getSubmission
+      summary: Full submission detail including raw payload
+      tags: [Reporting]
+      x-roles: [admin, supervisor]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { $ref: "#/components/schemas/UUID" }
+        - name: folder_schema
+          in: query
+          required: true
+          schema: { type: string }
+        - name: form_key
+          in: query
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Submission detail
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /reporting/entities/{id}/timeline:
+    get:
+      operationId: getEntityTimeline
+      summary: All submissions for an entity across all forms, chronological
+      tags: [Reporting]
+      x-roles: [admin, supervisor]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { $ref: "#/components/schemas/UUID" }
+      responses:
+        "200":
+          description: Timeline rows
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { type: object, additionalProperties: true }
+
+  /reporting/map:
+    get:
+      operationId: getMapData
+      summary: GPS points for all submissions (optionally within a bounding box)
+      tags: [Reporting]
+      x-roles: [admin, supervisor]
+      parameters:
+        - name: folder_schema
+          in: query
+          schema: { type: string }
+        - name: form_key
+          in: query
+          schema: { type: string }
+        - name: bbox
+          in: query
+          schema:
+            type: string
+            description: "minLon,minLat,maxLon,maxLat e.g. 33.9,-1.2,35.1,0.5"
+      responses:
+        "200":
+          description: Map points
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    submission_id: { $ref: "#/components/schemas/UUID" }
+                    entity_id: { $ref: "#/components/schemas/UUID" }
+                    form_key: { type: string }
+                    status: { $ref: "#/components/schemas/SubmissionStatus" }
+                    longitude: { type: number }
+                    latitude: { type: number }
+
+  /reporting/summary:
+    get:
+      operationId: getOrgSummary
+      summary: Org-level counts for the dashboard home
+      tags: [Reporting]
+      x-roles: [admin, supervisor]
+      responses:
+        "200":
+          description: Summary counts
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total_entities: { type: integer }
+                  submissions_pending: { type: integer }
+                  submissions_approved: { type: integer }
+                  quarantine_backlog: { type: integer }
+                  open_conflicts: { type: integer }
+
+  # ── Notifications ──────────────────────────────────────────────
+  /notifications/stream:
+    get:
+      operationId: notificationsStream
+      summary: SSE stream — push quarantine and conflict events in real time
+      tags: [Notifications]
+      x-roles: [admin, supervisor]
+      responses:
+        "200":
+          description: SSE event stream (text/event-stream)
+          content:
+            text/event-stream:
+              schema:
+                type: string
+
+  /notifications:
+    get:
+      operationId: listNotifications
+      summary: Paginated notification feed for the current user
+      tags: [Notifications]
+      x-roles: [admin, supervisor]
+      parameters:
+        - name: page
+          in: query
+          schema: { type: integer, default: 1 }
+        - name: limit
+          in: query
+          schema: { type: integer, default: 50 }
+      responses:
+        "200":
+          description: Notifications
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    {
+                      type: array,
+                      items: { $ref: "#/components/schemas/Notification" },
+                    }
+                  pagination: { $ref: "#/components/schemas/Pagination" }
+
+  /notifications/{id}/read:
+    patch:
+      operationId: markNotificationRead
+      summary: Mark a notification as read
+      tags: [Notifications]
+      x-roles: [admin, supervisor]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { $ref: "#/components/schemas/UUID" }
+      responses:
+        "204": { description: Marked as read }
+        "404": { $ref: "#/components/responses/NotFound" }

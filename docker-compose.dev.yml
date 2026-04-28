@@ -1,0 +1,63 @@
+services:
+  postgres:
+    image: postgis/postgis:15-3.3
+    container_name: athena_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: athena_db
+      POSTGRES_USER: athena_app
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-devpassword}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U athena_app -d athena_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile.dev
+    container_name: athena_api
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgres://athena_app:${POSTGRES_PASSWORD:-devpassword}@postgres:5432/athena_db
+      NODE_ENV: development
+    env_file:
+      - .env
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./apps/api/src:/app/src
+      - ./apps/database:/app/database
+    command: npx nodemon
+
+  web:
+    build:
+      context: ./apps/web
+      dockerfile: Dockerfile.dev
+    container_name: athena_web
+    restart: unless-stopped
+    depends_on:
+      - api
+    environment:
+      NODE_ENV: development
+      # Internal Docker network URL used by SvelteKit server-side fetch (form actions, load functions).
+      API_BASE_URL: http://api:3000
+      # Client-side (browser) URL — must be reachable from the user's machine.
+      PUBLIC_API_BASE_URL: http://localhost:3000
+    env_file:
+      - .env
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./apps/web/src:/app/src
+
+volumes:
+  postgres_data:
