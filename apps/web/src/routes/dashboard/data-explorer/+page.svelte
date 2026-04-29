@@ -11,7 +11,9 @@
 
   // Derive ordered column list from first row's fields, excluding group dividers
   function getColumns(fields: FlatField[]): FlatField[] {
-    return fields.filter((f) => f.type !== "begin_group" && f.type !== "begin_repeat");
+    return fields.filter(
+      (f) => f.type !== "begin_group" && f.type !== "begin_repeat",
+    );
   }
 </script>
 
@@ -75,6 +77,16 @@
       >
         Load
       </button>
+
+      {#if data.formKey}
+        <a
+          href="/api/submissions/export?folder_schema={data.folderSchema}&form_key={data.formKey}"
+          download
+          class="px-4 py-2 bg-surface-variant/30 text-on-surface text-sm font-medium rounded-xl hover:bg-surface-variant/50 transition-colors ambient-shadow"
+        >
+          Export CSV
+        </a>
+      {/if}
     {/if}
   </form>
 </div>
@@ -145,7 +157,8 @@
             class="flex items-center justify-between px-5 py-3 border-t border-surface-variant/20"
           >
             <a
-              href="?folder_schema={data.folderSchema}&form_key={data.formKey}&page={data.page - 1}"
+              href="?folder_schema={data.folderSchema}&form_key={data.formKey}&page={data.page -
+                1}"
               class="text-sm text-primary hover:underline {data.page <= 1
                 ? 'pointer-events-none opacity-30'
                 : ''}">← Prev</a
@@ -154,7 +167,8 @@
               >Page {data.page} / {pagination.pages}</span
             >
             <a
-              href="?folder_schema={data.folderSchema}&form_key={data.formKey}&page={data.page + 1}"
+              href="?folder_schema={data.folderSchema}&form_key={data.formKey}&page={data.page +
+                1}"
               class="text-sm text-primary hover:underline {data.page >=
               pagination.pages
                 ? 'pointer-events-none opacity-30'
