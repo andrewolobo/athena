@@ -8,11 +8,11 @@
   const mainNav = [
     { href: "/dashboard", label: "Overview", icon: "dashboard" },
     { href: "/dashboard/forms", label: "Forms", icon: "description" },
-    {
-      href: "/dashboard/submissions",
-      label: "Submissions",
-      icon: "assignment",
-    },
+    // {
+    //   href: "/dashboard/submissions",
+    //   label: "Submissions",
+    //   icon: "assignment",
+    // },
     {
       href: "/dashboard/data-explorer",
       label: "Data Explorer",

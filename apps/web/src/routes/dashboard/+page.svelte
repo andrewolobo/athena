@@ -328,9 +328,9 @@
   </div>
 
   <!-- Right column -->
-  <div class="space-y-6">
+  <div>
     <!-- Sector distribution -->
-    <div class="bg-white rounded-2xl ambient-shadow p-6">
+    <div class="bg-white rounded-2xl ambient-shadow p-6 h-full">
       <h2 class="font-headline font-semibold text-base text-on-surface mb-4">
         Forms by Sector
       </h2>
@@ -359,39 +359,6 @@
           {/each}
         </div>
       {/if}
-    </div>
-
-    <!-- Quick actions -->
-    <div class="bg-white rounded-2xl ambient-shadow p-6">
-      <h2 class="font-headline font-semibold text-base text-on-surface mb-4">
-        Quick links
-      </h2>
-      <div class="space-y-1">
-        <a
-          href="/dashboard/submissions"
-          class="flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-on-surface/70 hover:bg-surface-variant/30 transition-colors"
-        >
-          <span class="material-symbols-outlined text-[18px] text-primary"
-            >assignment</span
-          >Browse submissions
-        </a>
-        <a
-          href="/dashboard/indicators"
-          class="flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-on-surface/70 hover:bg-surface-variant/30 transition-colors"
-        >
-          <span class="material-symbols-outlined text-[18px] text-primary"
-            >analytics</span
-          >Manage indicators
-        </a>
-        <a
-          href="/dashboard/forms"
-          class="flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-on-surface/70 hover:bg-surface-variant/30 transition-colors"
-        >
-          <span class="material-symbols-outlined text-[18px] text-primary"
-            >upload_file</span
-          >Upload XLSForm
-        </a>
-      </div>
     </div>
   </div>
 </div>

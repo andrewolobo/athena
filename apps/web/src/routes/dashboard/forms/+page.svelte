@@ -14,8 +14,40 @@
     (grouped[f.folder_schema] ??= []).push(f);
   }
 
+  // Folder navigation state
+  let selectedSector: string | null = null;
+  let searchQuery = "";
+
+  // Derived: filtered sector entries matching the search query
+  $: filteredSectors = Object.entries(grouped).filter(([schema]) =>
+    schema.replace(/_/g, " ").toLowerCase().includes(searchQuery.toLowerCase()),
+  );
+
+  // Derived: filtered forms within the selected sector
+  $: filteredForms = selectedSector
+    ? (grouped[selectedSector] ?? []).filter(
+        (f) =>
+          f.display_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          f.form_key.toLowerCase().includes(searchQuery.toLowerCase()),
+      )
+    : [];
+
+  function selectSector(schema: string) {
+    selectedSector = schema;
+    searchQuery = "";
+  }
+
+  function backToSectors() {
+    selectedSector = null;
+    searchQuery = "";
+  }
+
   function fmtDate(iso: string) {
     return new Date(iso).toLocaleDateString();
+  }
+
+  function fmtSector(schema: string) {
+    return schema.replace(/_/g, " ");
   }
 </script>
 
@@ -234,9 +266,10 @@
   </div>
 </div>
 
-<!-- Forms grouped by sector -->
-<div class="px-6 md:px-8 pb-10 space-y-6">
+<!-- Forms folder navigator -->
+<div class="px-6 md:px-8 pb-10">
   {#if data.forms.length === 0}
+    <!-- Global empty state -->
     <div class="flex flex-col items-center justify-center py-24 text-center">
       <span class="material-symbols-outlined text-5xl text-on-surface/20 mb-4"
         >description</span
@@ -246,93 +279,196 @@
       </p>
     </div>
   {:else}
-    {#each Object.entries(grouped) as [schema, forms]}
-      <div class="bg-white rounded-2xl ambient-shadow overflow-hidden">
-        <div
-          class="px-5 py-3 border-b border-surface-variant/20 flex items-center gap-2"
+    <!-- Search + breadcrumb bar -->
+    <div class="flex items-center gap-3 mb-5">
+      <!-- Breadcrumb -->
+      <nav class="flex items-center gap-1 text-sm text-on-surface/50 shrink-0">
+        {#if selectedSector}
+          <button
+            on:click={backToSectors}
+            class="hover:text-primary transition-colors font-medium"
+          >
+            Forms
+          </button>
+          <span class="text-on-surface/30">/</span>
+          <span class="text-on-surface font-medium capitalize"
+            >{fmtSector(selectedSector)}</span
+          >
+        {:else}
+          <span class="text-on-surface font-medium">Forms</span>
+        {/if}
+      </nav>
+
+      <!-- Search input -->
+      <div class="relative flex-1 max-w-sm ml-auto">
+        <span
+          class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[18px] text-on-surface/30 pointer-events-none"
+          >search</span
         >
-          <span class="material-symbols-outlined text-[16px] text-primary"
-            >folder</span
-          >
-          <span class="text-sm font-medium text-on-surface capitalize"
-            >{schema.replace(/_/g, " ")}</span
-          >
-          <span class="ml-auto text-xs text-on-surface/40"
-            >{forms.length} form{forms.length !== 1 ? "s" : ""}</span
-          >
-        </div>
-        <div class="overflow-x-auto">
-          <table class="w-full table-fixed text-sm">
-            <thead>
-              <tr
-                class="text-left text-xs text-on-surface/40 uppercase tracking-wider border-b border-surface-variant/10"
-              >
-                <th class="px-5 py-3 font-medium w-2/5">Name</th>
-                <th class="px-5 py-3 font-medium w-1/5">Key</th>
-                <th class="px-5 py-3 font-medium w-16">Version</th>
-                <th class="px-5 py-3 font-medium w-20">Status</th>
-                <th class="px-5 py-3 font-medium w-24">Created</th>
-                <th class="px-5 py-3 font-medium w-20">Actions</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-surface-variant/10">
-              {#each forms as f}
-                <tr class="hover:bg-surface-variant/10 transition-colors">
-                  <td
-                    class="px-5 py-3 font-medium text-on-surface truncate"
-                    title={f.display_name}>{f.display_name}</td
-                  >
-                  <td
-                    class="px-5 py-3 font-mono text-xs text-on-surface/60 truncate"
-                    title={f.form_key}>{f.form_key}</td
-                  >
-                  <td class="px-5 py-3 text-on-surface/60 whitespace-nowrap"
-                    >v{f.current_version}</td
-                  >
-                  <td class="px-5 py-3 whitespace-nowrap">
-                    <span
-                      class="text-xs px-2 py-0.5 rounded-full font-medium {f.is_active
-                        ? 'bg-secondary/10 text-secondary'
-                        : 'bg-surface-variant/40 text-on-surface/50'}"
-                    >
-                      {f.is_active ? "active" : "inactive"}
-                    </span>
-                  </td>
-                  <td class="px-5 py-3 text-on-surface/50 whitespace-nowrap"
-                    >{fmtDate(f.created_at)}</td
-                  >
-                  <td class="px-5 py-3">
-                    <div class="flex items-center gap-1">
-                      <a
-                        href="/dashboard/forms/{f.id}"
-                        class="p-1.5 rounded-lg text-on-surface/40 hover:text-primary hover:bg-primary/10
-                               transition-colors"
-                        title="Edit form"
-                      >
-                        <span class="material-symbols-outlined text-[16px]"
-                          >edit</span
-                        >
-                      </a>
-                      <a
-                        href="/api/forms/{f.id}/export"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        class="p-1.5 rounded-lg text-on-surface/40 hover:text-secondary hover:bg-secondary/10
-                               transition-colors"
-                        title="Download XLSForm (.xlsx)"
-                      >
-                        <span class="material-symbols-outlined text-[16px]"
-                          >download</span
-                        >
-                      </a>
-                    </div>
-                  </td>
-                </tr>
-              {/each}
-            </tbody>
-          </table>
-        </div>
+        <input
+          type="text"
+          bind:value={searchQuery}
+          placeholder={selectedSector ? "Search forms…" : "Search sectors…"}
+          class="w-full pl-9 pr-3 py-2 text-sm rounded-xl border border-surface-variant/60
+                 bg-white text-on-surface placeholder-on-surface/30 focus:outline-none
+                 focus:ring-2 focus:ring-primary/30 transition-shadow"
+        />
       </div>
-    {/each}
+    </div>
+
+    <!-- SECTOR GRID VIEW -->
+    {#if !selectedSector}
+      {#if filteredSectors.length === 0}
+        <div
+          class="flex flex-col items-center justify-center py-20 text-center"
+        >
+          <span
+            class="material-symbols-outlined text-4xl text-on-surface/20 mb-3"
+            >search_off</span
+          >
+          <p class="text-on-surface/40 text-sm">
+            No sectors match your search.
+          </p>
+        </div>
+      {:else}
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+          {#each filteredSectors as [schema, forms]}
+            <button
+              on:click={() => selectSector(schema)}
+              class="group bg-white rounded-2xl ambient-shadow p-5 flex flex-col items-start gap-3
+                     hover:border-primary/30 hover:shadow-lg border border-transparent
+                     transition-all text-left cursor-pointer"
+            >
+              <!-- Folder icon -->
+              <div
+                class="w-12 h-12 rounded-xl bg-primary/8 flex items-center justify-center
+                       group-hover:bg-primary/15 transition-colors"
+              >
+                <span
+                  class="material-symbols-outlined text-[28px] text-primary"
+                  style="font-variation-settings: 'FILL' 1">folder</span
+                >
+              </div>
+
+              <!-- Sector name -->
+              <div class="flex-1 min-w-0 w-full">
+                <p
+                  class="text-sm font-semibold text-on-surface capitalize truncate leading-snug"
+                >
+                  {fmtSector(schema)}
+                </p>
+                <p class="text-xs text-on-surface/40 mt-0.5">
+                  {forms.length}
+                  {forms.length === 1 ? "form" : "forms"}
+                </p>
+              </div>
+
+              <!-- Arrow indicator -->
+              <span
+                class="material-symbols-outlined text-[16px] text-on-surface/20
+                       group-hover:text-primary/50 transition-colors self-end"
+                >arrow_forward</span
+              >
+            </button>
+          {/each}
+        </div>
+      {/if}
+
+      <!-- FORM CARD GRID VIEW -->
+    {:else if filteredForms.length === 0}
+      <div class="flex flex-col items-center justify-center py-20 text-center">
+        <span class="material-symbols-outlined text-4xl text-on-surface/20 mb-3"
+          >search_off</span
+        >
+        <p class="text-on-surface/40 text-sm">
+          No forms match your search in
+          <span class="capitalize">{fmtSector(selectedSector)}</span>.
+        </p>
+      </div>
+    {:else}
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {#each filteredForms as f}
+          <div
+            class="bg-white rounded-2xl ambient-shadow flex flex-col overflow-hidden
+                     border border-transparent hover:border-surface-variant/40 transition-colors"
+          >
+            <!-- Card body -->
+            <div class="p-5 flex flex-col gap-3 flex-1">
+              <!-- Name + status -->
+              <div class="flex items-start justify-between gap-2">
+                <p
+                  class="font-semibold text-sm text-on-surface leading-snug line-clamp-2"
+                  title={f.display_name}
+                >
+                  {f.display_name}
+                </p>
+                <span
+                  class="shrink-0 text-xs px-2 py-0.5 rounded-full font-medium {f.is_active
+                    ? 'bg-secondary/10 text-secondary'
+                    : 'bg-surface-variant/40 text-on-surface/50'}"
+                >
+                  {f.is_active ? "active" : "inactive"}
+                </span>
+              </div>
+
+              <!-- Meta chips -->
+              <div class="flex flex-wrap gap-2">
+                <span
+                  class="inline-flex items-center gap-1 text-xs font-mono bg-surface-container-low
+                           text-on-surface/60 px-2 py-0.5 rounded-lg"
+                  title="Form key"
+                >
+                  {f.form_key}
+                </span>
+                <span
+                  class="inline-flex items-center gap-1 text-xs bg-primary/8 text-primary
+                           px-2 py-0.5 rounded-lg"
+                >
+                  v{f.current_version}
+                </span>
+              </div>
+
+              <!-- Created date -->
+              <p
+                class="text-xs text-on-surface/40 mt-auto flex items-center gap-1"
+              >
+                <span class="material-symbols-outlined text-[14px]"
+                  >calendar_today</span
+                >
+                Created {fmtDate(f.created_at)}
+              </p>
+            </div>
+
+            <!-- Card footer / actions -->
+            <div
+              class="px-5 py-3 border-t border-surface-variant/15 flex items-center justify-end gap-1"
+            >
+              <a
+                href="/api/forms/{f.id}/export"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="flex items-center gap-1.5 px-3 py-1.5 text-xs text-on-surface/50
+                         hover:text-secondary hover:bg-secondary/10 rounded-lg transition-colors"
+                title="Download XLSForm (.xlsx)"
+              >
+                <span class="material-symbols-outlined text-[15px]"
+                  >download</span
+                >
+                Export
+              </a>
+              <a
+                href="/dashboard/forms/{f.id}"
+                class="flex items-center gap-1.5 px-3 py-1.5 text-xs text-white
+                         bg-primary hover:bg-primary-dim rounded-lg transition-colors"
+                title="Edit form"
+              >
+                <span class="material-symbols-outlined text-[15px]">edit</span>
+                Edit
+              </a>
+            </div>
+          </div>
+        {/each}
+      </div>
+    {/if}
   {/if}
 </div>

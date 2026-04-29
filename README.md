@@ -43,19 +43,19 @@ ATHENA is built around an **Identity-First** data model. Every participant or fa
 
 ## Technology Stack
 
-| Layer | Technology |
-|---|---|
-| Backend API | Node.js 20, Express.js, TypeScript |
-| Database | PostgreSQL 15 + PostGIS 3.3 |
-| Web dashboard | SvelteKit 2, `@sveltejs/adapter-node` (SSR), Tailwind CSS 3 |
-| Android client | Native Android (Kotlin), SQLite/Room, offline-first |
-| Auth | OAuth 2.0 / OIDC (`openid-client`, PKCE), JWT, HttpOnly cookies |
-| Migrations | `node-pg-migrate` |
-| Query layer | `pg` (node-postgres), parameterised queries only — no ORM |
-| Validation | `zod` — API boundaries and SvelteKit server actions |
-| Dev environment | Docker Compose |
-| Logging | `pino` |
-| Monorepo | npm workspaces + `concurrently` |
+| Layer           | Technology                                                      |
+| --------------- | --------------------------------------------------------------- |
+| Backend API     | Node.js 20, Express.js, TypeScript                              |
+| Database        | PostgreSQL 15 + PostGIS 3.3                                     |
+| Web dashboard   | SvelteKit 2, `@sveltejs/adapter-node` (SSR), Tailwind CSS 3     |
+| Android client  | Native Android (Kotlin), SQLite/Room, offline-first             |
+| Auth            | OAuth 2.0 / OIDC (`openid-client`, PKCE), JWT, HttpOnly cookies |
+| Migrations      | `node-pg-migrate`                                               |
+| Query layer     | `pg` (node-postgres), parameterised queries only — no ORM       |
+| Validation      | `zod` — API boundaries and SvelteKit server actions             |
+| Dev environment | Docker Compose                                                  |
+| Logging         | `pino`                                                          |
+| Monorepo        | npm workspaces + `concurrently`                                 |
 
 ---
 
@@ -106,6 +106,7 @@ Organisation
 ### Storage: Hybrid Relational + JSONB
 
 Each submission table contains:
+
 - **Rigid relational columns** — `submission_id`, `entity_id`, `form_id`, `enumerator_id`, `start_time`, `end_time`, `status`, `location` (PostGIS geography point)
 - **Flexible JSONB `payload` column** — all survey question responses; supports nested repeat groups
 
@@ -127,19 +128,19 @@ Failed checks route to the `quarantine_queue` and trigger real-time supervisor n
 
 ## API Modules
 
-| Module | Prefix | Description |
-|---|---|---|
-| Health | `GET /health` | DB connectivity check |
-| Auth | `/auth` | OAuth 2.0 OIDC login (Google, Microsoft), JWT cookie, logout |
-| Organisation | `/org` | Org info, user management, device management |
-| Entities | `/entities` | Identity registry — register participants/facilities, delta-sync for Android |
-| Forms | `/forms` | XLSForm upload, versioning, distribution endpoint for Android |
-| Ingestion | `/submissions` | OpenRosa 1.0 compliant multipart submission endpoint |
-| Quarantine | `/quarantine` | DQA failure review — resolve or reject entries |
-| Conflicts | `/conflicts` | Side-by-side conflict review and manual merge |
-| Indicators | `/indicators` | SMART indicator CRUD and on-demand SQL aggregation |
-| Reporting | `/reporting` | Flattened submission views, entity timelines, geospatial map data |
-| Notifications | `/notifications` | SSE stream for real-time alerts, paginated notification list |
+| Module        | Prefix           | Description                                                                  |
+| ------------- | ---------------- | ---------------------------------------------------------------------------- |
+| Health        | `GET /health`    | DB connectivity check                                                        |
+| Auth          | `/auth`          | OAuth 2.0 OIDC login (Google, Microsoft), JWT cookie, logout                 |
+| Organisation  | `/org`           | Org info, user management, device management                                 |
+| Entities      | `/entities`      | Identity registry — register participants/facilities, delta-sync for Android |
+| Forms         | `/forms`         | XLSForm upload, versioning, distribution endpoint for Android                |
+| Ingestion     | `/submissions`   | OpenRosa 1.0 compliant multipart submission endpoint                         |
+| Quarantine    | `/quarantine`    | DQA failure review — resolve or reject entries                               |
+| Conflicts     | `/conflicts`     | Side-by-side conflict review and manual merge                                |
+| Indicators    | `/indicators`    | SMART indicator CRUD and on-demand SQL aggregation                           |
+| Reporting     | `/reporting`     | Flattened submission views, entity timelines, geospatial map data            |
+| Notifications | `/notifications` | SSE stream for real-time alerts, paginated notification list                 |
 
 The full contract is defined in [`apps/api/openapi.yaml`](apps/api/openapi.yaml).
 
@@ -147,16 +148,16 @@ The full contract is defined in [`apps/api/openapi.yaml`](apps/api/openapi.yaml)
 
 ## Dashboard Pages
 
-| Route | Role | Description |
-|---|---|---|
-| `/dashboard` | All | Overview — indicator progress, submission counts, quarantine backlog |
-| `/dashboard/submissions` | Supervisor+ | Filterable submissions browser with payload viewer |
-| `/dashboard/indicators` | Supervisor+ | ITT — baselines, targets, computed actuals |
-| `/dashboard/forms` | Supervisor+ | XLSForm upload, versioning, field list viewer |
-| `/dashboard/quarantine` | Supervisor+ | Real-time DQA failure queue, resolve/reject UI |
-| `/dashboard/conflicts` | Supervisor+ | Side-by-side conflict diff and merge interface |
-| `/dashboard/users` | Admin | Invite users, change roles, deactivate, reset passwords |
-| `/dashboard/devices` | Admin | View and remove registered Android devices |
+| Route                    | Role        | Description                                                          |
+| ------------------------ | ----------- | -------------------------------------------------------------------- |
+| `/dashboard`             | All         | Overview — indicator progress, submission counts, quarantine backlog |
+| `/dashboard/submissions` | Supervisor+ | Filterable submissions browser with payload viewer                   |
+| `/dashboard/indicators`  | Supervisor+ | ITT — baselines, targets, computed actuals                           |
+| `/dashboard/forms`       | Supervisor+ | XLSForm upload, versioning, field list viewer                        |
+| `/dashboard/quarantine`  | Supervisor+ | Real-time DQA failure queue, resolve/reject UI                       |
+| `/dashboard/conflicts`   | Supervisor+ | Side-by-side conflict diff and merge interface                       |
+| `/dashboard/users`       | Admin       | Invite users, change roles, deactivate, reset passwords              |
+| `/dashboard/devices`     | Admin       | View and remove registered Android devices                           |
 
 ---
 
@@ -192,6 +193,7 @@ docker compose -f docker-compose.dev.yml up
 ```
 
 This starts three services:
+
 - `postgres` — PostgreSQL 15 + PostGIS on port 5432
 - `api` — Express API on port 3000 (hot reload via nodemon)
 - `web` — SvelteKit dashboard on port 5173 (hot reload)
@@ -225,25 +227,25 @@ npm run dev:web
 
 ## Environment Variables
 
-| Variable | Description |
-|---|---|
-| `DATABASE_URL` | PostgreSQL connection string |
-| `POSTGRES_PASSWORD` | Docker Compose postgres container password |
-| `JWT_SECRET` | Minimum 64 random hex characters |
-| `JWT_EXPIRY` | Token lifetime (e.g. `15m`, `1h`) |
-| `OAUTH_GOOGLE_CLIENT_ID` | Google OAuth 2.0 client ID |
-| `OAUTH_GOOGLE_CLIENT_SECRET` | Google OAuth 2.0 client secret |
-| `OAUTH_MICROSOFT_CLIENT_ID` | Azure AD app client ID |
-| `OAUTH_MICROSOFT_CLIENT_SECRET` | Azure AD app client secret |
-| `OAUTH_CALLBACK_URL` | Full URL to `/auth/callback` on the API |
-| `APP_BASE_URL` | Public base URL of the web dashboard |
-| `SMTP_HOST` | SMTP server hostname (for quarantine alert emails) |
-| `SMTP_PORT` | SMTP port |
-| `SMTP_USER` | SMTP username |
-| `SMTP_PASS` | SMTP password |
-| `SMTP_FROM` | From address for outbound email |
-| `PORT` | API server port (default: `3000`) |
-| `NODE_ENV` | `development` or `production` |
+| Variable                        | Description                                        |
+| ------------------------------- | -------------------------------------------------- |
+| `DATABASE_URL`                  | PostgreSQL connection string                       |
+| `POSTGRES_PASSWORD`             | Docker Compose postgres container password         |
+| `JWT_SECRET`                    | Minimum 64 random hex characters                   |
+| `JWT_EXPIRY`                    | Token lifetime (e.g. `15m`, `1h`)                  |
+| `OAUTH_GOOGLE_CLIENT_ID`        | Google OAuth 2.0 client ID                         |
+| `OAUTH_GOOGLE_CLIENT_SECRET`    | Google OAuth 2.0 client secret                     |
+| `OAUTH_MICROSOFT_CLIENT_ID`     | Azure AD app client ID                             |
+| `OAUTH_MICROSOFT_CLIENT_SECRET` | Azure AD app client secret                         |
+| `OAUTH_CALLBACK_URL`            | Full URL to `/auth/callback` on the API            |
+| `APP_BASE_URL`                  | Public base URL of the web dashboard               |
+| `SMTP_HOST`                     | SMTP server hostname (for quarantine alert emails) |
+| `SMTP_PORT`                     | SMTP port                                          |
+| `SMTP_USER`                     | SMTP username                                      |
+| `SMTP_PASS`                     | SMTP password                                      |
+| `SMTP_FROM`                     | From address for outbound email                    |
+| `PORT`                          | API server port (default: `3000`)                  |
+| `NODE_ENV`                      | `development` or `production`                      |
 
 See [`.env.example`](.env.example) for the full annotated template.
 
@@ -263,14 +265,14 @@ npm run migrate:prod   # Run pending migrations (production database)
 
 ## Roles & Permissions
 
-| Permission | Admin | Supervisor | Enumerator |
-|---|---|---|---|
-| Submit data (via Android) | ✓ | ✓ | ✓ |
-| Browse submissions | ✓ | ✓ | — |
-| Resolve quarantine / conflicts | ✓ | ✓ | — |
-| Manage indicators & forms | ✓ | — | — |
-| Manage users & devices | ✓ | — | — |
-| Access dashboard | ✓ | ✓ | — |
+| Permission                     | Admin | Supervisor | Enumerator |
+| ------------------------------ | ----- | ---------- | ---------- |
+| Submit data (via Android)      | ✓     | ✓          | ✓          |
+| Browse submissions             | ✓     | ✓          | —          |
+| Resolve quarantine / conflicts | ✓     | ✓          | —          |
+| Manage indicators & forms      | ✓     | —          | —          |
+| Manage users & devices         | ✓     | —          | —          |
+| Access dashboard               | ✓     | ✓          | —          |
 
 ---
 
