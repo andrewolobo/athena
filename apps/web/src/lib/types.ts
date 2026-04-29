@@ -156,3 +156,37 @@ export interface RecentSubmission {
   server_received_at: string;
   status: string;
 }
+
+// ── Insight Builder ──────────────────────────────────────────
+
+export type InsightKind = "categorical" | "temporal" | "numerical" | "unknown";
+export type InsightChartType = "pie" | "bar_horizontal" | "line";
+export type InsightTimeGrain = "day" | "week" | "month";
+
+export interface InsightField {
+  name: string;
+  label: string;
+  xlsform_type: string;
+  kind: InsightKind;
+}
+
+export interface InsightAggregateCategorical {
+  field: string;
+  label: string;
+  kind: "categorical";
+  buckets: { key: string; label: string; count: number }[];
+  total: number;
+}
+
+export interface InsightAggregateTemporal {
+  field: string;
+  label: string;
+  kind: "temporal";
+  time_grain: InsightTimeGrain;
+  series: { bucket: string; count: number }[];
+  total: number;
+}
+
+export type InsightAggregate =
+  | InsightAggregateCategorical
+  | InsightAggregateTemporal;

@@ -1,7 +1,7 @@
 import { redirect } from "@sveltejs/kit";
 import type { PageServerLoad } from "./$types";
 import { apiFetch, ApiError } from "$lib/api";
-import type { Form, Paginated, Submission } from "$lib/types";
+import type { Form, InsightField, Paginated, Submission } from "$lib/types";
 
 export const load: PageServerLoad = async ({ cookies, url, parent }) => {
   const { user } = await parent();
@@ -13,11 +13,15 @@ export const load: PageServerLoad = async ({ cookies, url, parent }) => {
   const folderSchema = url.searchParams.get("folder_schema") ?? "";
   const formKey = url.searchParams.get("form_key") ?? "";
   const page = Number(url.searchParams.get("page") ?? "1");
+  // ?insights=1 gates the in-development Insight Builder UI. Until Step 7
+  // ships the feature is opt-in via the URL.
+  const insightsEnabled = true; //url.searchParams.get("insights") === "1";
 
   const forms = await apiFetch<Form[]>("/forms", token);
 
   let submissions: Paginated<Submission> | null = null;
   let submissionsError: string | null = null;
+  let insightFields: InsightField[] = [];
 
   if (folderSchema && formKey) {
     try {
@@ -29,7 +33,29 @@ export const load: PageServerLoad = async ({ cookies, url, parent }) => {
       submissionsError =
         err instanceof ApiError ? err.message : "Failed to load submissions";
     }
+
+    if (insightsEnabled) {
+      try {
+        insightFields = await apiFetch<InsightField[]>(
+          `/insights/fields?folder_schema=${encodeURIComponent(folderSchema)}&form_key=${encodeURIComponent(formKey)}`,
+          token,
+        );
+      } catch {
+        // Don't fail the page if the metadata endpoint hiccups; the
+        // Insight buttons just won't render.
+        insightFields = [];
+      }
+    }
   }
 
-  return { forms, submissions, submissionsError, folderSchema, formKey, page };
+  return {
+    forms,
+    submissions,
+    submissionsError,
+    folderSchema,
+    formKey,
+    page,
+    insightsEnabled,
+    insightFields,
+  };
 };

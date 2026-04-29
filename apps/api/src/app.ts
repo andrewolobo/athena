@@ -17,6 +17,7 @@ import quarantineRouter from "./routes/quarantine";
 import conflictsRouter from "./routes/conflicts";
 import indicatorsRouter from "./routes/indicators";
 import reportingRouter from "./routes/reporting";
+import insightsRouter from "./routes/insights";
 import devicesRouter from "./routes/devices";
 
 const app = express();
@@ -52,6 +53,7 @@ app.use("/quarantine", quarantineRouter);
 app.use("/conflicts", conflictsRouter);
 app.use("/indicators", indicatorsRouter);
 app.use("/reporting", reportingRouter);
+app.use("/insights", insightsRouter);
 app.use("/org/devices", devicesRouter);
 
 // ── Global error handler (must be last) ──────────────────────

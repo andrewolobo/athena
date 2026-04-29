@@ -1,6 +1,9 @@
 <script lang="ts">
   import type { PageData } from "./$types";
-  import type { FlatField } from "$lib/types";
+  import type { FlatField, InsightField } from "$lib/types";
+  import InsightFieldButton from "$lib/components/insights/InsightFieldButton.svelte";
+  import InsightBuilder from "$lib/components/insights/InsightBuilder.svelte";
+
   export let data: PageData;
 
   // Group forms by folder_schema for the selector
@@ -14,6 +17,22 @@
     return fields.filter(
       (f) => f.type !== "begin_group" && f.type !== "begin_repeat",
     );
+  }
+
+  // ── Insight Builder wiring ──────────────────────────────
+  // Look up the InsightField descriptor by payload key so the column
+  // header buttons can render the correct enabled/disabled state and
+  // pass a fully-typed field into the side panel.
+  $: insightFieldMap = new Map<string, InsightField>(
+    ((data.insightFields ?? []) as InsightField[]).map((f) => [f.name, f]),
+  );
+
+  let panelOpen = false;
+  let selectedField: InsightField | null = null;
+
+  function openInsight(field: InsightField): void {
+    selectedField = field;
+    panelOpen = true;
   }
 </script>
 
@@ -126,7 +145,18 @@
                     class="px-5 py-3 font-medium whitespace-nowrap max-w-[200px]"
                     title={col.name}
                   >
-                    {col.label}
+                    <span class="inline-flex items-center">
+                      <span>{col.label}</span>
+                      {#if data.insightsEnabled}
+                        {@const insight = insightFieldMap.get(col.name)}
+                        {#if insight}
+                          <InsightFieldButton
+                            field={insight}
+                            on:open={(e) => openInsight(e.detail)}
+                          />
+                        {/if}
+                      {/if}
+                    </span>
                   </th>
                 {/each}
               </tr>
@@ -190,4 +220,13 @@
       Select a sector and form above to load the dataset.
     </p>
   </div>
+{/if}
+
+{#if data.insightsEnabled}
+  <InsightBuilder
+    bind:open={panelOpen}
+    field={selectedField}
+    folderSchema={data.folderSchema}
+    formKey={data.formKey}
+  />
 {/if}

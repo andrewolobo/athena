@@ -19,6 +19,12 @@ import { pool } from "../db";
 import { requireAuth } from "../middleware/requireAuth";
 import { createError } from "../middleware/errorHandler";
 import { assertSafeIdentifier } from "../modules/dqa/pipeline";
+import { resolveFormTable } from "../modules/forms/resolveFormTable";
+import {
+  GROUP_TYPES,
+  SKIP_TYPES,
+  normalizeLabel,
+} from "../modules/forms/survey";
 
 // ── Flat-field types and helpers ──────────────────────────────
 
@@ -27,32 +33,6 @@ export interface FlatField {
   label: string;
   type: string;
   value: string | null;
-}
-
-// Types that carry no user-visible answer value and are skipped entirely.
-const SKIP_TYPES = new Set([
-  "note",
-  "calculate",
-  "hidden",
-  "end_group",
-  "end_repeat",
-]);
-
-// Types that open a named group/repeat — emitted as section dividers with value:null.
-const GROUP_TYPES = new Set(["begin_group", "begin_repeat"]);
-
-/**
- * Resolve an XLSForm label to a plain string.
- * label may be a string or a multilingual map {"English (en)": "..."}.
- */
-function normalizeLabel(raw: unknown, fallback: string): string {
-  if (typeof raw === "string" && raw.trim()) return raw.trim();
-  if (raw !== null && typeof raw === "object") {
-    for (const v of Object.values(raw as Record<string, unknown>)) {
-      if (typeof v === "string" && v.trim()) return v.trim();
-    }
-  }
-  return fallback;
 }
 
 /**
@@ -106,63 +86,6 @@ export function flattenPayload(
 
 const router = Router();
 router.use(requireAuth(["admin", "supervisor"]));
-
-// ── Helper: resolve folder_schema + form_key from query params ──
-// Validates that the form belongs to the caller's org before returning
-// the table identifier.
-async function resolveFormTable(
-  orgId: string,
-  folderSchema: unknown,
-  formKey: unknown,
-  next: NextFunction,
-): Promise<{ tableName: string; formId: string; tableExists: boolean } | null> {
-  if (!folderSchema || typeof folderSchema !== "string") {
-    next(createError("Query param `folder_schema` is required", 422));
-    return null;
-  }
-  if (!formKey || typeof formKey !== "string") {
-    next(createError("Query param `form_key` is required", 422));
-    return null;
-  }
-
-  // Check the form exists in this org (row-level isolation)
-  const formCheck = await pool.query<{ id: string }>(
-    `SELECT id FROM public.forms
-      WHERE org_id = $1 AND folder_schema = $2 AND form_key = $3`,
-    [orgId, folderSchema, formKey],
-  );
-  if (!formCheck.rows[0]) {
-    next(createError("Form not found in this organisation", 404));
-    return null;
-  }
-
-  // Defence-in-depth: validate identifier shape even though it came from DB
-  try {
-    assertSafeIdentifier(folderSchema, "folder_schema");
-    assertSafeIdentifier(formKey, "form_key");
-  } catch {
-    next(createError("Invalid form identifier", 422));
-    return null;
-  }
-
-  const tableName = `${folderSchema}.submissions_${formKey}`;
-
-  // Check whether the submissions table has been created yet.
-  // A form can exist in the registry before any data has been ingested.
-  const tableCheck = await pool.query<{ exists: boolean }>(
-    `SELECT EXISTS (
-       SELECT 1 FROM information_schema.tables
-        WHERE table_schema = $1 AND table_name = $2
-     ) AS exists`,
-    [folderSchema, `submissions_${formKey}`],
-  );
-
-  return {
-    tableName,
-    formId: formCheck.rows[0].id,
-    tableExists: tableCheck.rows[0]?.exists ?? false,
-  };
-}
 
 // ── GET /reporting/submissions ────────────────────────────────
 // Query params: folder_schema, form_key, status, entity_id, page, limit, all_fields
