@@ -8,20 +8,29 @@ import type {
   Form,
   DayActivity,
   RecentSubmission,
+  UserInsight,
 } from "$lib/types";
 
 export const load: PageServerLoad = async ({ cookies }) => {
   const token = cookies.get("athena_session")!;
 
-  const [summary, quarantine, conflicts, forms, activity, recentSubmissions] =
-    await Promise.allSettled([
-      apiFetch<ReportingSummary>("/reporting/summary", token),
-      apiFetch<Paginated<QuarantineEntry>>("/quarantine?limit=1", token),
-      apiFetch<Conflict[]>("/conflicts", token),
-      apiFetch<Form[]>("/forms", token),
-      apiFetch<DayActivity[]>("/reporting/activity", token),
-      apiFetch<RecentSubmission[]>("/reporting/recent", token),
-    ]);
+  const [
+    summary,
+    quarantine,
+    conflicts,
+    forms,
+    activity,
+    recentSubmissions,
+    pinnedInsights,
+  ] = await Promise.allSettled([
+    apiFetch<ReportingSummary>("/reporting/summary", token),
+    apiFetch<Paginated<QuarantineEntry>>("/quarantine?limit=1", token),
+    apiFetch<Conflict[]>("/conflicts", token),
+    apiFetch<Form[]>("/forms", token),
+    apiFetch<DayActivity[]>("/reporting/activity", token),
+    apiFetch<RecentSubmission[]>("/reporting/recent", token),
+    apiFetch<UserInsight[]>("/insights/mine", token),
+  ]);
 
   const reportingSummary =
     summary.status === "fulfilled" ? summary.value : null;
@@ -57,5 +66,7 @@ export const load: PageServerLoad = async ({ cookies }) => {
     activity: activity.status === "fulfilled" ? activity.value : [],
     recentSubmissions:
       recentSubmissions.status === "fulfilled" ? recentSubmissions.value : [],
+    pinnedInsights:
+      pinnedInsights.status === "fulfilled" ? pinnedInsights.value : [],
   };
 };

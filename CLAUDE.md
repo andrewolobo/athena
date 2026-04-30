@@ -141,6 +141,7 @@ Failed checks route to the `quarantine_queue` and trigger real-time supervisor n
 | Indicators    | `/indicators`    | SMART indicator CRUD and on-demand SQL aggregation                           |
 | Reporting     | `/reporting`     | Flattened submission views, entity timelines, geospatial map data            |
 | Notifications | `/notifications` | SSE stream for real-time alerts, paginated notification list                 |
+| Insights      | `/insights`      | Per-user pinnable chart configs; categorical/temporal aggregation from form payload fields |
 
 The full contract is defined in [`apps/api/openapi.yaml`](apps/api/openapi.yaml).
 
@@ -150,14 +151,15 @@ The full contract is defined in [`apps/api/openapi.yaml`](apps/api/openapi.yaml)
 
 | Route                    | Role        | Description                                                          |
 | ------------------------ | ----------- | -------------------------------------------------------------------- |
-| `/dashboard`             | All         | Overview — indicator progress, submission counts, quarantine backlog |
-| `/dashboard/submissions` | Supervisor+ | Filterable submissions browser with payload viewer                   |
-| `/dashboard/indicators`  | Supervisor+ | ITT — baselines, targets, computed actuals                           |
-| `/dashboard/forms`       | Supervisor+ | XLSForm upload, versioning, field list viewer                        |
-| `/dashboard/quarantine`  | Supervisor+ | Real-time DQA failure queue, resolve/reject UI                       |
-| `/dashboard/conflicts`   | Supervisor+ | Side-by-side conflict diff and merge interface                       |
-| `/dashboard/users`       | Admin       | Invite users, change roles, deactivate, reset passwords              |
-| `/dashboard/devices`     | Admin       | View and remove registered Android devices                           |
+| `/dashboard`                | All         | Overview — indicator progress, submission counts, quarantine backlog; My Insights pinned chart grid |
+| `/dashboard/submissions`    | Supervisor+ | Filterable submissions browser with payload viewer                                                  |
+| `/dashboard/indicators`     | Supervisor+ | ITT — baselines, targets, computed actuals                                                          |
+| `/dashboard/forms`          | Supervisor+ | XLSForm upload, versioning, field list viewer                                                       |
+| `/dashboard/quarantine`     | Supervisor+ | Real-time DQA failure queue, resolve/reject UI                                                      |
+| `/dashboard/conflicts`      | Supervisor+ | Side-by-side conflict diff and merge interface                                                      |
+| `/dashboard/users`          | Admin       | Invite users, change roles, deactivate, reset passwords                                             |
+| `/dashboard/devices`        | Admin       | View and remove registered Android devices                                                          |
+| `/dashboard/data-explorer`  | Supervisor+ | Submission table browser; Insight Builder side panel (enabled via `?insights=1`) for ad-hoc charting and dashboard pinning |
 
 ---
 

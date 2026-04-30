@@ -44,6 +44,11 @@ export interface Form {
   created_at: string;
 }
 
+export interface SectorConfig {
+  folder_schema: string;
+  is_archived: boolean;
+}
+
 export interface Indicator {
   id: string;
   code: string;
@@ -190,3 +195,23 @@ export interface InsightAggregateTemporal {
 export type InsightAggregate =
   | InsightAggregateCategorical
   | InsightAggregateTemporal;
+
+export interface UserInsight {
+  id: string;
+  org_id: string;
+  user_id: string;
+  form_id: string;
+  folder_schema: string;
+  form_key: string;
+  field_name: string;
+  title: string;
+  description: string | null;
+  chart_type: InsightChartType;
+  data_kind: "categorical" | "temporal";
+  time_grain: InsightTimeGrain | null;
+  filters: Record<string, unknown>;
+  is_pinned: boolean;
+  pin_order: number;
+  created_at: string;
+  updated_at: string;
+}

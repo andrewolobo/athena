@@ -97,6 +97,12 @@ components:
         is_active: { type: boolean }
         created_at: { $ref: "#/components/schemas/ISOTimestamp" }
 
+    SectorConfig:
+      type: object
+      properties:
+        folder_schema: { type: string }
+        is_archived: { type: boolean }
+
     QuarantineEntry:
       type: object
       properties:
@@ -525,9 +531,20 @@ paths:
   /forms:
     get:
       operationId: listForms
-      summary: List all active forms grouped by folder schema
+      summary: List forms for the organisation
+      description: |
+        By default returns only active (non-archived) forms. Pass
+        `include_archived=true` to include archived forms as well.
       tags: [Forms]
       x-roles: [admin, supervisor]
+      parameters:
+        - name: include_archived
+          in: query
+          required: false
+          schema:
+            type: boolean
+            default: false
+          description: When true, archived forms (is_active = false) are included in the response.
       responses:
         "200":
           description: Forms list
@@ -589,18 +606,34 @@ paths:
                       xlsform_json: { type: object, additionalProperties: true }
         "404": { $ref: "#/components/responses/NotFound" }
 
-    delete:
-      operationId: deactivateForm
-      summary: Deactivate a form (sets is_active = false)
+  /forms/{id}/archive:
+    patch:
+      operationId: archiveForm
+      summary: Archive a form (sets is_active = false, reversible)
       tags: [Forms]
-      x-roles: [admin]
+      x-roles: [admin, supervisor]
       parameters:
         - name: id
           in: path
           required: true
           schema: { $ref: "#/components/schemas/UUID" }
       responses:
-        "204": { description: Form deactivated }
+        "204": { description: Form archived }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /forms/{id}/unarchive:
+    patch:
+      operationId: unarchiveForm
+      summary: Restore an archived form (sets is_active = true)
+      tags: [Forms]
+      x-roles: [admin, supervisor]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { $ref: "#/components/schemas/UUID" }
+      responses:
+        "204": { description: Form restored }
         "404": { $ref: "#/components/responses/NotFound" }
 
   /forms/{id}/definition:
@@ -651,6 +684,55 @@ paths:
             application/json:
               schema: { $ref: "#/components/schemas/Form" }
         "422": { $ref: "#/components/responses/UnprocessableEntity" }
+
+  # ── Sectors ───────────────────────────────────────────────────
+  /sectors:
+    get:
+      operationId: listSectors
+      summary: List all sectors with their archive state
+      description: |
+        Returns every distinct folder_schema present in the forms table for the
+        organisation, joined with its archive state from sector_config.
+      tags: [Forms]
+      x-roles: [admin, supervisor]
+      responses:
+        "200":
+          description: Sector list
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/SectorConfig" }
+
+  /sectors/{folder_schema}/archive:
+    patch:
+      operationId: archiveSector
+      summary: Archive a sector
+      tags: [Forms]
+      x-roles: [admin, supervisor]
+      parameters:
+        - name: folder_schema
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "204": { description: Sector archived }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /sectors/{folder_schema}/unarchive:
+    patch:
+      operationId: unarchiveSector
+      summary: Restore an archived sector
+      tags: [Forms]
+      x-roles: [admin, supervisor]
+      parameters:
+        - name: folder_schema
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "204": { description: Sector restored }
+        "404": { $ref: "#/components/responses/NotFound" }
 
   # ── Ingestion (OpenRosa 1.0) ──────────────────────────────────
   /submissions:

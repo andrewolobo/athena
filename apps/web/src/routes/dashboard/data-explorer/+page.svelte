@@ -27,6 +27,17 @@
     ((data.insightFields ?? []) as InsightField[]).map((f) => [f.name, f]),
   );
 
+  // Resolve the active form's UUID from the loaded forms list. Required
+  // by the Pin button — the API uses form_id (not folder_schema/form_key)
+  // as the canonical identifier for newly persisted insights.
+  $: activeFormId =
+    data.folderSchema && data.formKey
+      ? (data.forms.find(
+          (f) =>
+            f.folder_schema === data.folderSchema && f.form_key === data.formKey,
+        )?.id ?? null)
+      : null;
+
   let panelOpen = false;
   let selectedField: InsightField | null = null;
 
@@ -226,6 +237,7 @@
   <InsightBuilder
     bind:open={panelOpen}
     field={selectedField}
+    formId={activeFormId}
     folderSchema={data.folderSchema}
     formKey={data.formKey}
   />

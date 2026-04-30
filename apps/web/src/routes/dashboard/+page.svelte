@@ -1,8 +1,10 @@
 <script lang="ts">
   import type { PageData } from "./$types";
+  import PinnedInsightsGrid from "$lib/components/insights/PinnedInsightsGrid.svelte";
   export let data: PageData;
 
   $: indicators = data.summary?.indicators ?? [];
+  $: pinnedInsights = data.pinnedInsights ?? [];
   $: topIndicators = indicators.slice(0, 6);
   $: activity = data.activity ?? [];
   $: recentSubmissions = data.recentSubmissions ?? [];
@@ -485,3 +487,6 @@
     {/if}
   </div>
 </div>
+
+<!-- ─── My Insights ───────────────────────────────────────── -->
+<PinnedInsightsGrid insights={pinnedInsights} />

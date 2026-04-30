@@ -1,6 +1,7 @@
 <script lang="ts">
   import { page } from "$app/stores";
   import type { LayoutData } from "./$types";
+  import Toaster from "$lib/components/Toaster.svelte";
 
   export let data: LayoutData;
 
@@ -216,4 +217,8 @@
       <slot />
     </main>
   </div>
+
+  <!-- Transient toast notifications. position:fixed so it lives
+       outside the flex layout and stays anchored to the viewport. -->
+  <Toaster />
 </div>

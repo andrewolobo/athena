@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount, onDestroy } from "svelte";
-  import type { ChartConfiguration, ChartType } from "chart.js";
+  import type { ChartConfiguration } from "chart.js";
   import type {
     InsightAggregate,
     InsightChartType,
@@ -8,6 +8,7 @@
     InsightTimeGrain,
   } from "$lib/types";
   import { Chart } from "./chart";
+  import { INSIGHT_LABELS, resolveBucketLabel } from "./labels";
 
   /** Pure chart renderer. The parent owns config + data fetching; this
    *  component only mirrors them onto a Chart.js canvas and cleans up
@@ -19,6 +20,10 @@
     title: string;
   };
   export let data: InsightAggregate | null;
+  /** Caller-supplied empty-state copy. Lets the parent provide
+   *  context-specific guidance (e.g. categorical vs temporal) instead
+   *  of the generic fallback. */
+  export let emptyLabel: string = INSIGHT_LABELS.noDataTile;
 
   // Material-aligned palette derived from tailwind.config.js. Reused
   // across pie/bar slices in stable order so re-rendering doesn't
@@ -44,7 +49,9 @@
     if (!data) return null;
 
     if (data.kind === "categorical") {
-      const labels = data.buckets.map((b) => b.label);
+      const labels = data.buckets.map((b) =>
+        resolveBucketLabel(b.key, b.label),
+      );
       const counts = data.buckets.map((b) => b.count);
       const colors = data.buckets.map((_, i) => PALETTE[i % PALETTE.length]);
 
@@ -170,9 +177,9 @@
 <div class="relative w-full h-full">
   {#if data && (data.kind === "categorical" ? data.buckets.length === 0 : data.series.length === 0)}
     <div
-      class="absolute inset-0 flex items-center justify-center text-sm text-on-surface/40"
+      class="absolute inset-0 flex items-center justify-center text-sm text-on-surface/40 px-4 text-center"
     >
-      No data to display.
+      {emptyLabel}
     </div>
   {/if}
   <canvas bind:this={canvasEl}></canvas>

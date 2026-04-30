@@ -247,11 +247,12 @@ router.get(
   requireAuth(["admin", "supervisor"]),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
+      const includeArchived = req.query.include_archived === "true";
       const result = await pool.query(
         `SELECT id, org_id, folder_schema, form_key, display_name,
                 current_version, is_active, created_by, created_at
            FROM public.forms
-          WHERE org_id = $1 AND is_active = true
+          WHERE org_id = $1${includeArchived ? "" : " AND is_active = true"}
           ORDER BY folder_schema, display_name`,
         [req.user!.org_id],
       );
@@ -788,22 +789,47 @@ router.post(
   },
 );
 
-// ── DELETE /forms/:id ─────────────────────────────────────────
-router.delete(
-  "/:id",
-  requireAuth(["admin"]),
+// ── PATCH /forms/:id/archive ──────────────────────────────────
+router.patch(
+  "/:id/archive",
+  requireAuth(["admin", "supervisor"]),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const result = await pool.query(
         `UPDATE public.forms
             SET is_active = false
-          WHERE id = $1 AND org_id = $2
+          WHERE id = $1 AND org_id = $2 AND is_active = true
          RETURNING id`,
         [req.params.id, req.user!.org_id],
       );
 
       if (!result.rows[0]) {
-        return next(createError("Form not found", 404));
+        return next(createError("Form not found or already archived", 404));
+      }
+
+      res.sendStatus(204);
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+
+// ── PATCH /forms/:id/unarchive ────────────────────────────────
+router.patch(
+  "/:id/unarchive",
+  requireAuth(["admin", "supervisor"]),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const result = await pool.query(
+        `UPDATE public.forms
+            SET is_active = true
+          WHERE id = $1 AND org_id = $2 AND is_active = false
+         RETURNING id`,
+        [req.params.id, req.user!.org_id],
+      );
+
+      if (!result.rows[0]) {
+        return next(createError("Form not found or already active", 404));
       }
 
       res.sendStatus(204);

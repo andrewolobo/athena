@@ -7,13 +7,20 @@
     InsightTimeGrain,
   } from "$lib/types";
   import ChartView from "./ChartView.svelte";
+  import { exportElementAsPng, buildInsightFilename } from "./exportPng";
+  import { INSIGHT_LABELS } from "./labels";
+  import { pushToast } from "$lib/stores/toasts";
 
   export let open = false;
   export let field: InsightField | null = null;
+  export let formId: string | null = null;
   export let folderSchema = "";
   export let formKey = "";
 
-  const dispatch = createEventDispatcher<{ close: void }>();
+  const dispatch = createEventDispatcher<{
+    close: void;
+    pinned: { id: string };
+  }>();
 
   // ── Local state ─────────────────────────────────────────
   let title = "";
@@ -23,6 +30,16 @@
   let aggregate: InsightAggregate | null = null;
   let loading = false;
   let error: string | null = null;
+
+  // Pin-to-Dashboard state
+  let saving = false;
+  let saveError: string | null = null;
+  let savedId: string | null = null;
+
+  // PNG export state
+  let previewEl: HTMLElement | undefined;
+  let exporting = false;
+  let exportError: string | null = null;
 
   // ── Reset on field change ───────────────────────────────
   // When the user opens the panel against a new field, populate the
@@ -36,6 +53,11 @@
     timeGrain = "month";
     aggregate = null;
     error = null;
+    saving = false;
+    saveError = null;
+    savedId = null;
+    exporting = false;
+    exportError = null;
   }
 
   // ── Debounced fetch ─────────────────────────────────────
@@ -96,6 +118,75 @@
     open = false;
     dispatch("close");
   }
+
+  /** Persist the current configuration. Disabled unless the field is
+   *  pinnable AND the page has resolved a form_id from the active form
+   *  selector — without it we can't address a row in public.forms. */
+  async function pinInsight(): Promise<void> {
+    if (!field || !formId) return;
+    if (field.kind !== "categorical" && field.kind !== "temporal") return;
+
+    saving = true;
+    saveError = null;
+
+    const body = {
+      form_id: formId,
+      field_name: field.name,
+      title: title.trim() || field.label,
+      description: description.trim() || undefined,
+      chart_type: chartType,
+      data_kind: field.kind,
+      time_grain: field.kind === "temporal" ? timeGrain : undefined,
+    };
+
+    try {
+      const res = await fetch("/api/insights", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) {
+        const errBody = await res.json().catch(() => ({}));
+        throw new Error(errBody.error ?? `Pin failed (${res.status})`);
+      }
+      const created = (await res.json()) as { id: string };
+      savedId = created.id;
+      dispatch("pinned", { id: created.id });
+      pushToast("success", INSIGHT_LABELS.toastPinned);
+    } catch (err) {
+      saveError = err instanceof Error ? err.message : "Failed to pin insight";
+      pushToast("error", `${INSIGHT_LABELS.toastPinFailed} ${saveError}`);
+    } finally {
+      saving = false;
+    }
+  }
+
+  $: canPin =
+    !!field &&
+    !!formId &&
+    (field.kind === "categorical" || field.kind === "temporal") &&
+    !saving &&
+    !savedId &&
+    title.trim().length > 0;
+
+  /** Export the current preview as a PNG. Disabled until aggregate data
+   *  has loaded — html2canvas captures the live DOM, so a blank chart
+   *  would produce a blank export. */
+  async function exportPng(): Promise<void> {
+    if (!previewEl || !aggregate) return;
+    exporting = true;
+    exportError = null;
+    try {
+      await exportElementAsPng(previewEl, buildInsightFilename(title));
+    } catch (err) {
+      exportError = err instanceof Error ? err.message : "Export failed";
+      pushToast("error", `Export failed: ${exportError}`);
+    } finally {
+      exporting = false;
+    }
+  }
+
+  $: canExport = !!aggregate && !exporting && !loading && !error;
 
   function handleKeydown(e: KeyboardEvent): void {
     if (e.key === "Escape") close();
@@ -247,6 +338,7 @@
           Preview
         </h3>
         <div
+          bind:this={previewEl}
           class="bg-white rounded-2xl ambient-shadow p-4 h-72 relative"
         >
           {#if loading}
@@ -271,6 +363,9 @@
                 title,
               }}
               data={aggregate}
+              emptyLabel={field?.kind === "temporal"
+                ? INSIGHT_LABELS.noDataTemporal
+                : INSIGHT_LABELS.noDataCategorical}
             />
           {/if}
         </div>
@@ -280,25 +375,49 @@
             1
               ? ""
               : "s"}
-            {#if aggregate.kind === "categorical" && aggregate.buckets.length === 100}
-              · showing top 100 buckets
+            {#if aggregate.kind === "categorical" && aggregate.buckets.some((b) => b.key === "__other__")}
+              · showing top 50, remainder grouped as "Other"
             {/if}
           </p>
         {/if}
       </section>
 
-      <!-- Dashboard pinning (Step 4 placeholder) -->
+      <!-- Dashboard pinning -->
       <section>
         <h3
           class="text-[10px] font-bold uppercase tracking-widest text-on-surface/40 mb-3"
         >
           Dashboard pinning
         </h3>
-        <div
-          class="bg-surface-container-low rounded-xl px-4 py-3 text-xs text-on-surface/60"
-        >
-          Pin-to-dashboard persistence arrives in the next step.
-        </div>
+        {#if savedId}
+          <div
+            class="bg-primary/10 text-primary rounded-xl px-4 py-3 text-xs flex items-center gap-2"
+          >
+            <span class="material-symbols-outlined text-[16px]"
+              >check_circle</span
+            >
+            Pinned to your dashboard.
+            <a href="/dashboard" class="underline font-medium">View</a>
+          </div>
+        {:else if saveError}
+          <div
+            class="bg-error/10 text-error rounded-xl px-4 py-3 text-xs"
+          >
+            {saveError}
+          </div>
+        {:else if !formId}
+          <div
+            class="bg-surface-container-low rounded-xl px-4 py-3 text-xs text-on-surface/60"
+          >
+            Select a form first to enable pinning.
+          </div>
+        {:else}
+          <div
+            class="bg-surface-container-low rounded-xl px-4 py-3 text-xs text-on-surface/60"
+          >
+            Save this chart to your home dashboard for ongoing monitoring.
+          </div>
+        {/if}
       </section>
     </div>
 
@@ -316,21 +435,38 @@
       <div class="flex items-center gap-2">
         <button
           type="button"
-          disabled
-          title="Available in step 5"
-          class="px-4 py-2 text-sm font-medium text-on-surface/40 bg-surface-container-low rounded-xl cursor-not-allowed flex items-center gap-1.5"
+          on:click={exportPng}
+          disabled={!canExport}
+          title={exportError ?? "Download the current chart as a PNG"}
+          class="px-4 py-2 text-sm font-medium rounded-xl flex items-center gap-1.5 transition-colors
+            {canExport
+            ? 'text-on-surface/70 hover:bg-surface-variant/40 cursor-pointer'
+            : 'text-on-surface/40 bg-surface-container-low cursor-not-allowed'}"
         >
           <span class="material-symbols-outlined text-[18px]">image</span>
-          Export PNG
+          {#if exporting}
+            Exporting…
+          {:else}
+            Export PNG
+          {/if}
         </button>
         <button
           type="button"
-          disabled
-          title="Available in step 4"
-          class="px-4 py-2 text-sm font-medium text-white bg-primary/40 rounded-xl cursor-not-allowed flex items-center gap-1.5"
+          on:click={pinInsight}
+          disabled={!canPin}
+          class="px-4 py-2 text-sm font-medium text-white rounded-xl flex items-center gap-1.5 transition-colors
+            {canPin
+            ? 'bg-primary hover:bg-primary-dim cursor-pointer'
+            : 'bg-primary/40 cursor-not-allowed'}"
         >
           <span class="material-symbols-outlined text-[18px]">push_pin</span>
-          Pin to Dashboard
+          {#if saving}
+            Pinning…
+          {:else if savedId}
+            Pinned
+          {:else}
+            Pin to Dashboard
+          {/if}
         </button>
       </div>
     </footer>

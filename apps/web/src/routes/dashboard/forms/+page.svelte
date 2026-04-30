@@ -8,29 +8,52 @@
   let fileInput: HTMLInputElement;
   let fileName = "";
 
-  // Group forms by sector
-  const grouped: Record<string, typeof data.forms> = {};
-  for (const f of data.forms) {
-    (grouped[f.folder_schema] ??= []).push(f);
-  }
-
-  // Folder navigation state
-  let selectedSector: string | null = null;
-  let searchQuery = "";
-
-  // Derived: filtered sector entries matching the search query
-  $: filteredSectors = Object.entries(grouped).filter(([schema]) =>
-    schema.replace(/_/g, " ").toLowerCase().includes(searchQuery.toLowerCase()),
+  // Group ALL forms (active + inactive) by sector — reactive so it updates after actions
+  $: grouped = data.forms.reduce<Record<string, typeof data.forms>>(
+    (acc, f) => {
+      (acc[f.folder_schema] ??= []).push(f);
+      return acc;
+    },
+    {},
   );
 
-  // Derived: filtered forms within the selected sector
+  // Sector archive state lookup map
+  $: sectorArchiveMap = new Map(
+    data.sectors.map((s) => [s.folder_schema, s.is_archived]),
+  );
+
+  // Folder navigation + archive visibility state
+  let selectedSector: string | null = null;
+  let searchQuery = "";
+  let showArchived = false;
+
+  // Derived: visible sector entries based on showArchived + search
+  $: filteredSectors = Object.entries(grouped).filter(([schema]) => {
+    if ((sectorArchiveMap.get(schema) ?? false) && !showArchived) return false;
+    return schema
+      .replace(/_/g, " ")
+      .toLowerCase()
+      .includes(searchQuery.toLowerCase());
+  });
+
+  // Derived: visible forms within the selected sector based on showArchived + search
   $: filteredForms = selectedSector
-    ? (grouped[selectedSector] ?? []).filter(
-        (f) =>
+    ? (grouped[selectedSector] ?? []).filter((f) => {
+        if (!f.is_active && !showArchived) return false;
+        return (
           f.display_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          f.form_key.toLowerCase().includes(searchQuery.toLowerCase()),
-      )
+          f.form_key.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+      })
     : [];
+
+  function activeFormCount(forms: typeof data.forms): number {
+    return forms.filter((f) => f.is_active).length;
+  }
+
+  function archivedFormCount(forms: typeof data.forms): number {
+    return forms.filter((f) => !f.is_active).length;
+  }
 
   function selectSector(schema: string) {
     selectedSector = schema;
@@ -55,7 +78,7 @@
   <div>
     <h1 class="font-headline text-2xl font-semibold text-on-surface">Forms</h1>
     <p class="text-sm text-on-surface/50 mt-0.5">
-      {data.forms.length} forms registered
+      {data.forms.filter((f) => f.is_active).length} forms registered
     </p>
   </div>
 
@@ -280,7 +303,7 @@
     </div>
   {:else}
     <!-- Search + breadcrumb bar -->
-    <div class="flex items-center gap-3 mb-5">
+    <div class="flex items-center gap-3 mb-5 flex-wrap">
       <!-- Breadcrumb -->
       <nav class="flex items-center gap-1 text-sm text-on-surface/50 shrink-0">
         {#if selectedSector}
@@ -298,6 +321,18 @@
           <span class="text-on-surface font-medium">Forms</span>
         {/if}
       </nav>
+
+      <!-- Show archived toggle -->
+      <button
+        on:click={() => (showArchived = !showArchived)}
+        class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-xl border transition-colors
+               {showArchived
+          ? 'bg-surface-variant/40 border-surface-variant text-on-surface/70'
+          : 'border-surface-variant/40 text-on-surface/40 hover:bg-surface-container hover:text-on-surface/60'}"
+      >
+        <span class="material-symbols-outlined text-[14px]">inventory_2</span>
+        {showArchived ? "Hide archived" : "Show archived"}
+      </button>
 
       <!-- Search input -->
       <div class="relative flex-1 max-w-sm ml-auto">
@@ -333,43 +368,103 @@
       {:else}
         <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
           {#each filteredSectors as [schema, forms]}
-            <button
-              on:click={() => selectSector(schema)}
-              class="group bg-white rounded-2xl ambient-shadow p-5 flex flex-col items-start gap-3
-                     hover:border-primary/30 hover:shadow-lg border border-transparent
-                     transition-all text-left cursor-pointer"
+            {@const sectorArchived = sectorArchiveMap.get(schema) ?? false}
+            <div
+              class="group bg-white rounded-2xl ambient-shadow flex flex-col overflow-hidden
+                     border transition-all hover:shadow-lg
+                     {sectorArchived
+                ? 'border-surface-variant/40 opacity-70'
+                : 'border-transparent hover:border-primary/30'}"
             >
-              <!-- Folder icon -->
+              <!-- Clickable navigation area -->
+              <button
+                on:click={() => selectSector(schema)}
+                class="w-full p-5 flex flex-col items-start gap-3 text-left cursor-pointer"
+              >
+                <!-- Folder icon -->
+                <div
+                  class="w-12 h-12 rounded-xl flex items-center justify-center transition-colors
+                         {sectorArchived
+                    ? 'bg-surface-variant/30'
+                    : 'bg-primary/8 group-hover:bg-primary/15'}"
+                >
+                  <span
+                    class="material-symbols-outlined text-[28px] {sectorArchived
+                      ? 'text-on-surface/30'
+                      : 'text-primary'}"
+                    style="font-variation-settings: 'FILL' 1"
+                    >{sectorArchived ? "folder_off" : "folder"}</span
+                  >
+                </div>
+
+                <!-- Sector name + counts -->
+                <div class="flex-1 min-w-0 w-full">
+                  <p
+                    class="text-sm font-semibold capitalize truncate leading-snug
+                           {sectorArchived
+                      ? 'text-on-surface/40'
+                      : 'text-on-surface'}"
+                  >
+                    {fmtSector(schema)}
+                  </p>
+                  <p class="text-xs text-on-surface/40 mt-0.5">
+                    {activeFormCount(forms)}
+                    {activeFormCount(forms) === 1 ? "form" : "forms"}
+                    {#if archivedFormCount(forms) > 0}
+                      <span class="text-on-surface/25"
+                        >· {archivedFormCount(forms)} archived</span
+                      >
+                    {/if}
+                  </p>
+                </div>
+              </button>
+
+              <!-- Action footer -->
               <div
-                class="w-12 h-12 rounded-xl bg-primary/8 flex items-center justify-center
-                       group-hover:bg-primary/15 transition-colors"
+                class="px-5 pb-4 flex items-center {sectorArchived
+                  ? 'justify-between'
+                  : 'justify-end'}"
               >
-                <span
-                  class="material-symbols-outlined text-[28px] text-primary"
-                  style="font-variation-settings: 'FILL' 1">folder</span
-                >
+                {#if sectorArchived}
+                  <span
+                    class="flex items-center gap-1 text-xs text-on-surface/35 font-medium"
+                  >
+                    <span class="material-symbols-outlined text-[13px]"
+                      >inventory_2</span
+                    >
+                    Archived
+                  </span>
+                  <form method="POST" action="?/unarchiveSector" use:enhance>
+                    <input type="hidden" name="folder_schema" value={schema} />
+                    <button
+                      type="submit"
+                      class="flex items-center gap-1 text-xs text-secondary font-medium
+                             hover:bg-secondary/10 px-2.5 py-1 rounded-lg transition-colors"
+                    >
+                      <span class="material-symbols-outlined text-[13px]"
+                        >unarchive</span
+                      >
+                      Restore
+                    </button>
+                  </form>
+                {:else}
+                  <form method="POST" action="?/archiveSector" use:enhance>
+                    <input type="hidden" name="folder_schema" value={schema} />
+                    <button
+                      type="submit"
+                      class="flex items-center gap-1 text-xs text-on-surface/35 font-medium
+                             hover:bg-surface-variant/30 hover:text-on-surface/60
+                             px-2.5 py-1 rounded-lg transition-colors"
+                    >
+                      <span class="material-symbols-outlined text-[13px]"
+                        >inventory_2</span
+                      >
+                      Archive
+                    </button>
+                  </form>
+                {/if}
               </div>
-
-              <!-- Sector name -->
-              <div class="flex-1 min-w-0 w-full">
-                <p
-                  class="text-sm font-semibold text-on-surface capitalize truncate leading-snug"
-                >
-                  {fmtSector(schema)}
-                </p>
-                <p class="text-xs text-on-surface/40 mt-0.5">
-                  {forms.length}
-                  {forms.length === 1 ? "form" : "forms"}
-                </p>
-              </div>
-
-              <!-- Arrow indicator -->
-              <span
-                class="material-symbols-outlined text-[16px] text-on-surface/20
-                       group-hover:text-primary/50 transition-colors self-end"
-                >arrow_forward</span
-              >
-            </button>
+            </div>
           {/each}
         </div>
       {/if}
@@ -389,15 +484,20 @@
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {#each filteredForms as f}
           <div
-            class="bg-white rounded-2xl ambient-shadow flex flex-col overflow-hidden
-                     border border-transparent hover:border-surface-variant/40 transition-colors"
+            class="rounded-2xl ambient-shadow flex flex-col overflow-hidden border transition-colors
+                   {f.is_active
+              ? 'bg-white border-transparent hover:border-surface-variant/40'
+              : 'bg-surface-container-low border-surface-variant/30 opacity-70'}"
           >
             <!-- Card body -->
             <div class="p-5 flex flex-col gap-3 flex-1">
               <!-- Name + status -->
               <div class="flex items-start justify-between gap-2">
                 <p
-                  class="font-semibold text-sm text-on-surface leading-snug line-clamp-2"
+                  class="font-semibold text-sm leading-snug line-clamp-2
+                         {f.is_active
+                    ? 'text-on-surface'
+                    : 'text-on-surface/50'}"
                   title={f.display_name}
                 >
                   {f.display_name}
@@ -405,9 +505,9 @@
                 <span
                   class="shrink-0 text-xs px-2 py-0.5 rounded-full font-medium {f.is_active
                     ? 'bg-secondary/10 text-secondary'
-                    : 'bg-surface-variant/40 text-on-surface/50'}"
+                    : 'bg-surface-variant/50 text-on-surface/40'}"
                 >
-                  {f.is_active ? "active" : "inactive"}
+                  {f.is_active ? "active" : "archived"}
                 </span>
               </div>
 
@@ -441,30 +541,72 @@
 
             <!-- Card footer / actions -->
             <div
-              class="px-5 py-3 border-t border-surface-variant/15 flex items-center justify-end gap-1"
+              class="px-5 py-3 border-t border-surface-variant/15 flex items-center justify-between gap-1"
             >
-              <a
-                href="/api/forms/{f.id}/export"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="flex items-center gap-1.5 px-3 py-1.5 text-xs text-on-surface/50
-                         hover:text-secondary hover:bg-secondary/10 rounded-lg transition-colors"
-                title="Download XLSForm (.xlsx)"
-              >
-                <span class="material-symbols-outlined text-[15px]"
-                  >download</span
-                >
-                Export
-              </a>
-              <a
-                href="/dashboard/forms/{f.id}"
-                class="flex items-center gap-1.5 px-3 py-1.5 text-xs text-white
-                         bg-primary hover:bg-primary-dim rounded-lg transition-colors"
-                title="Edit form"
-              >
-                <span class="material-symbols-outlined text-[15px]">edit</span>
-                Edit
-              </a>
+              <!-- Archive / Restore action -->
+              <div>
+                {#if f.is_active}
+                  <form method="POST" action="?/archiveForm" use:enhance>
+                    <input type="hidden" name="id" value={f.id} />
+                    <button
+                      type="submit"
+                      class="flex items-center gap-1.5 px-3 py-1.5 text-xs text-on-surface/40
+                               hover:text-error hover:bg-error/10 rounded-lg transition-colors"
+                      title="Archive form"
+                    >
+                      <span class="material-symbols-outlined text-[15px]"
+                        >inventory_2</span
+                      >
+                      Archive
+                    </button>
+                  </form>
+                {:else}
+                  <form method="POST" action="?/unarchiveForm" use:enhance>
+                    <input type="hidden" name="id" value={f.id} />
+                    <button
+                      type="submit"
+                      class="flex items-center gap-1.5 px-3 py-1.5 text-xs text-secondary font-medium
+                               hover:bg-secondary/10 rounded-lg transition-colors"
+                      title="Restore form"
+                    >
+                      <span class="material-symbols-outlined text-[15px]"
+                        >unarchive</span
+                      >
+                      Restore
+                    </button>
+                  </form>
+                {/if}
+              </div>
+
+              <!-- Export + Edit (active forms only) -->
+              <div class="flex items-center gap-1">
+                {#if f.is_active}
+                  <a
+                    href="/api/forms/{f.id}/export"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="flex items-center gap-1.5 px-3 py-1.5 text-xs text-on-surface/50
+                             hover:text-secondary hover:bg-secondary/10 rounded-lg transition-colors"
+                    title="Download XLSForm (.xlsx)"
+                  >
+                    <span class="material-symbols-outlined text-[15px]"
+                      >download</span
+                    >
+                    Export
+                  </a>
+                  <a
+                    href="/dashboard/forms/{f.id}"
+                    class="flex items-center gap-1.5 px-3 py-1.5 text-xs text-white
+                             bg-primary hover:bg-primary-dim rounded-lg transition-colors"
+                    title="Edit form"
+                  >
+                    <span class="material-symbols-outlined text-[15px]"
+                      >edit</span
+                    >
+                    Edit
+                  </a>
+                {/if}
+              </div>
             </div>
           </div>
         {/each}
