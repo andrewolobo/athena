@@ -7,6 +7,7 @@
   let uploading = false;
   let fileInput: HTMLInputElement;
   let fileName = "";
+  let showUploadForm = false;
 
   // Group ALL forms (active + inactive) by sector — reactive so it updates after actions
   $: grouped = data.forms.reduce<Record<string, typeof data.forms>>(
@@ -74,45 +75,15 @@
   }
 </script>
 
-<div class="px-6 py-6 md:px-8 flex items-start justify-between gap-4 flex-wrap">
-  <div>
-    <h1 class="font-headline text-2xl font-semibold text-on-surface">Forms</h1>
-    <p class="text-sm text-on-surface/50 mt-0.5">
-      {data.forms.filter((f) => f.is_active).length} forms registered
-    </p>
-  </div>
+<svelte:head>
+  <title>Forms — Athena</title>
+</svelte:head>
 
-  <div class="flex items-center gap-2">
-    <!-- Visual builder -->
-    <a
-      href="/dashboard/forms/new"
-      class="flex items-center gap-2 px-4 py-2 bg-primary text-white text-sm font-medium
-             rounded-xl hover:bg-primary-dim transition-colors shadow-sm"
-    >
-      <span class="material-symbols-outlined text-[18px]">edit_square</span>
-      Build Form
-    </a>
-
-    <!-- Upload XLSForm -->
-    <label
-      class="cursor-pointer flex items-center gap-2 px-4 py-2 border border-surface-variant/60
-             text-on-surface/70 text-sm font-medium rounded-xl hover:bg-surface-container
-             transition-colors"
-    >
-      <span class="material-symbols-outlined text-[18px]">upload_file</span>
-      Upload XLSForm
-      <input
-        bind:this={fileInput}
-        type="file"
-        name="xlsform"
-        accept=".xlsx,.xls"
-        class="hidden"
-        on:change={() => {
-          fileName = fileInput?.files?.[0]?.name ?? "";
-        }}
-      />
-    </label>
-  </div>
+<div class="px-6 py-6 md:px-8">
+  <h1 class="font-headline text-2xl font-semibold text-on-surface">Forms</h1>
+  <p class="text-sm text-on-surface/50 mt-0.5">
+    {data.forms.filter((f) => f.is_active).length} forms registered
+  </p>
 </div>
 
 <!-- Upload panel (hidden checkbox trick — pure CSS toggle replaced by Svelte state) -->
@@ -134,158 +105,323 @@
   </div>
 {/if}
 
-<!-- Upload banner -->
-<div class="px-6 md:px-8 mb-6" id="upload-section">
+<!-- ─── Hero banner ─────────────────────────────────── -->
+<div class="px-6 md:px-8 mb-6">
   <div
-    class="relative overflow-hidden rounded-[28px] bg-gradient-primary p-9 md:p-12 shadow-2xl"
+    class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-blue-600 via-blue-500 to-indigo-600 min-h-[200px] flex items-center"
+    style="min-height: 210px;"
   >
     <!-- Decorative blobs -->
     <div
-      class="absolute top-0 right-0 w-72 h-72 bg-white/10 rounded-full blur-3xl -mr-36 -mt-36 pointer-events-none"
+      class="absolute -top-10 -right-10 w-64 h-64 rounded-full bg-white/10 blur-2xl pointer-events-none"
     ></div>
     <div
-      class="absolute bottom-0 left-0 w-72 h-72 bg-white/10 rounded-full blur-3xl -ml-36 -mb-36 pointer-events-none"
+      class="absolute bottom-0 left-1/2 w-80 h-48 rounded-full bg-indigo-400/20 blur-3xl pointer-events-none"
     ></div>
 
-    <div class="relative z-10">
-      <p
-        class="text-on-primary/70 text-sm font-semibold uppercase tracking-widest mb-2"
+    {#if !showUploadForm}
+      <!-- Decorative SVG illustration (right side) -->
+      <div
+        class="absolute right-6 bottom-0 opacity-20 select-none pointer-events-none hidden sm:block"
       >
-        Form Registry
-      </p>
-      <h2
-        class="font-headline text-3xl md:text-4xl font-extrabold text-on-primary leading-tight mb-2"
-      >
-        Upload new XLSForm
-      </h2>
-      <p class="text-on-primary/70 text-base mb-8 max-w-xl">
-        Import an existing XLSForm definition to register it in the system and
-        begin collecting data.
-      </p>
+        <svg
+          width="220"
+          height="210"
+          viewBox="0 0 220 210"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <!-- Document shadow -->
+          <rect
+            x="52"
+            y="28"
+            width="112"
+            height="148"
+            rx="10"
+            fill="white"
+            fill-opacity="0.08"
+          />
+          <!-- Document outline -->
+          <rect
+            x="44"
+            y="20"
+            width="112"
+            height="148"
+            rx="10"
+            stroke="white"
+            stroke-width="1.5"
+          />
+          <!-- Folded corner -->
+          <path d="M126,20 L156,50 L126,50 Z" fill="white" fill-opacity="0.2" />
+          <path
+            d="M126,20 L126,50 L156,50"
+            stroke="white"
+            stroke-width="1.5"
+            fill="none"
+          />
+          <!-- Field label + input row 1 -->
+          <rect
+            x="60"
+            y="65"
+            width="36"
+            height="5"
+            rx="2"
+            fill="white"
+            fill-opacity="0.55"
+          />
+          <rect
+            x="60"
+            y="75"
+            width="82"
+            height="9"
+            rx="4"
+            fill="white"
+            fill-opacity="0.18"
+            stroke="white"
+            stroke-width="0.75"
+            stroke-opacity="0.4"
+          />
+          <!-- Field label + input row 2 -->
+          <rect
+            x="60"
+            y="96"
+            width="28"
+            height="5"
+            rx="2"
+            fill="white"
+            fill-opacity="0.55"
+          />
+          <rect
+            x="60"
+            y="106"
+            width="82"
+            height="9"
+            rx="4"
+            fill="white"
+            fill-opacity="0.18"
+            stroke="white"
+            stroke-width="0.75"
+            stroke-opacity="0.4"
+          />
+          <!-- Field label + input row 3 -->
+          <rect
+            x="60"
+            y="127"
+            width="44"
+            height="5"
+            rx="2"
+            fill="white"
+            fill-opacity="0.55"
+          />
+          <rect
+            x="60"
+            y="137"
+            width="82"
+            height="9"
+            rx="4"
+            fill="white"
+            fill-opacity="0.18"
+            stroke="white"
+            stroke-width="0.75"
+            stroke-opacity="0.4"
+          />
+          <!-- Submit button mockup -->
+          <rect
+            x="60"
+            y="156"
+            width="46"
+            height="12"
+            rx="6"
+            fill="white"
+            fill-opacity="0.35"
+          />
+        </svg>
+      </div>
 
-      <form
-        method="POST"
-        action="?/upload"
-        enctype="multipart/form-data"
-        use:enhance={() => {
-          uploading = true;
-          return async ({ update }) => {
-            uploading = false;
-            await update();
-          };
-        }}
-        class="flex flex-col gap-5"
-      >
-        <!-- Metadata row -->
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div class="flex flex-col gap-1.5">
-            <label
-              class="text-xs font-semibold text-on-primary/70 uppercase tracking-wider"
-              for="display_name"
-            >
-              Form title
-            </label>
-            <input
-              id="display_name"
-              name="display_name"
-              type="text"
-              required
-              placeholder="e.g. Household Survey 2026"
-              class="px-3 py-2.5 text-sm rounded-xl border border-white/20 bg-white/15 text-on-primary placeholder-on-primary/40 focus:outline-none focus:ring-2 focus:ring-white/40 backdrop-blur-sm"
-            />
-          </div>
-          <div class="flex flex-col gap-1.5">
-            <label
-              class="text-xs font-semibold text-on-primary/70 uppercase tracking-wider"
-              for="folder_schema"
-            >
-              Sector
-            </label>
-            <input
-              id="folder_schema"
-              name="folder_schema"
-              type="text"
-              required
-              placeholder="e.g. health"
-              class="px-3 py-2.5 text-sm rounded-xl border border-white/20 bg-white/15 text-on-primary placeholder-on-primary/40 focus:outline-none focus:ring-2 focus:ring-white/40 backdrop-blur-sm"
-            />
-          </div>
-          <div class="flex flex-col gap-1.5">
-            <label
-              class="text-xs font-semibold text-on-primary/70 uppercase tracking-wider"
-              for="form_key"
-            >
-              Form key
-            </label>
-            <input
-              id="form_key"
-              name="form_key"
-              type="text"
-              required
-              pattern="[a-z0-9_]+"
-              placeholder="e.g. household_survey"
-              class="px-3 py-2.5 text-sm rounded-xl border border-white/20 bg-white/15 text-on-primary placeholder-on-primary/40 focus:outline-none focus:ring-2 focus:ring-white/40 backdrop-blur-sm font-mono"
-            />
-          </div>
-        </div>
-
-        <!-- File + submit row -->
-        <div class="flex flex-col sm:flex-row gap-4 items-end">
-          <div class="flex-1">
-            <label
-              class="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-white/30 rounded-xl cursor-pointer hover:border-white/60 hover:bg-white/10 transition-colors"
-            >
-              <span
-                class="material-symbols-outlined text-3xl text-on-primary/50 mb-1"
-                >cloud_upload</span
-              >
-              <span class="text-sm text-on-primary/60">
-                {fileName || "Click to select .xlsx / .xls file"}
-              </span>
-              <input
-                bind:this={fileInput}
-                type="file"
-                name="file"
-                accept=".xlsx,.xls"
-                class="hidden"
-                required
-                on:change={() => {
-                  fileName = fileInput?.files?.[0]?.name ?? "";
-                }}
-              />
-            </label>
-          </div>
-          <button
-            type="submit"
-            disabled={uploading}
-            class="shrink-0 px-7 py-3 bg-surface text-primary text-sm font-bold rounded-2xl hover:bg-surface-container transition-colors disabled:opacity-50 flex items-center gap-2 shadow-lg"
+      <!-- Default content -->
+      <div class="relative z-10 px-8 py-10">
+        <h2
+          class="font-headline text-3xl font-bold text-white leading-tight mb-2"
+        >
+          Forms
+        </h2>
+        <p class="text-white/70 text-sm max-w-xs mb-6">
+          Build surveys with the visual form designer, or import an existing
+          XLSForm definition to register it and begin collecting data.
+        </p>
+        <div class="flex items-center gap-3 flex-wrap">
+          <a
+            href="/dashboard/forms/new"
+            class="inline-flex items-center gap-2 px-5 py-2.5 bg-white text-blue-600 font-semibold text-sm rounded-xl shadow hover:bg-blue-50 transition-colors"
           >
-            {#if uploading}
-              <svg class="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
-                <circle
-                  class="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  stroke-width="4"
-                />
-                <path
-                  class="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8v8H4z"
-                />
-              </svg>
-            {:else}
-              <span class="material-symbols-outlined text-[18px]"
-                >upload_file</span
-              >
-            {/if}
-            Upload
+            <span class="material-symbols-outlined text-[18px]"
+              >edit_square</span
+            >
+            Build Form
+          </a>
+          <button
+            type="button"
+            on:click={() => (showUploadForm = true)}
+            class="inline-flex items-center gap-2 px-5 py-2.5 bg-white/15 text-white font-semibold text-sm rounded-xl hover:bg-white/25 transition-colors border border-white/20"
+          >
+            <span class="material-symbols-outlined text-[18px]"
+              >upload_file</span
+            >
+            Upload XLSForm
           </button>
         </div>
-      </form>
-    </div>
+      </div>
+    {:else}
+      <!-- Upload form content -->
+      <div class="relative z-10 px-8 py-10 w-full">
+        <div class="flex items-center justify-between mb-5">
+          <h2 class="font-headline text-2xl font-bold text-white leading-tight">
+            Upload XLSForm
+          </h2>
+          <button
+            type="button"
+            on:click={() => {
+              showUploadForm = false;
+              fileName = "";
+            }}
+            class="flex items-center gap-1.5 text-white/70 hover:text-white text-sm font-medium transition-colors"
+          >
+            <span class="material-symbols-outlined text-[18px]">arrow_back</span
+            >
+            Cancel
+          </button>
+        </div>
+
+        <form
+          method="POST"
+          action="?/upload"
+          enctype="multipart/form-data"
+          use:enhance={() => {
+            uploading = true;
+            return async ({ update }) => {
+              uploading = false;
+              showUploadForm = false;
+              fileName = "";
+              await update();
+            };
+          }}
+          class="flex flex-col gap-5"
+        >
+          <!-- Metadata row -->
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div class="flex flex-col gap-1.5">
+              <label
+                class="text-xs font-semibold text-white/70 uppercase tracking-wider"
+                for="display_name"
+              >
+                Form title
+              </label>
+              <input
+                id="display_name"
+                name="display_name"
+                type="text"
+                required
+                placeholder="e.g. Household Survey 2026"
+                class="px-3 py-2.5 text-sm rounded-xl border border-white/20 bg-white/15 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-white/40 backdrop-blur-sm"
+              />
+            </div>
+            <div class="flex flex-col gap-1.5">
+              <label
+                class="text-xs font-semibold text-white/70 uppercase tracking-wider"
+                for="folder_schema"
+              >
+                Sector
+              </label>
+              <input
+                id="folder_schema"
+                name="folder_schema"
+                type="text"
+                required
+                placeholder="e.g. health"
+                class="px-3 py-2.5 text-sm rounded-xl border border-white/20 bg-white/15 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-white/40 backdrop-blur-sm"
+              />
+            </div>
+            <div class="flex flex-col gap-1.5">
+              <label
+                class="text-xs font-semibold text-white/70 uppercase tracking-wider"
+                for="form_key"
+              >
+                Form key
+              </label>
+              <input
+                id="form_key"
+                name="form_key"
+                type="text"
+                required
+                pattern="[a-z0-9_]+"
+                placeholder="e.g. household_survey"
+                class="px-3 py-2.5 text-sm rounded-xl border border-white/20 bg-white/15 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-white/40 backdrop-blur-sm font-mono"
+              />
+            </div>
+          </div>
+
+          <!-- File + submit row -->
+          <div class="flex flex-col sm:flex-row gap-4 items-end">
+            <div class="flex-1">
+              <label
+                class="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-white/30 rounded-xl cursor-pointer hover:border-white/60 hover:bg-white/10 transition-colors"
+              >
+                <span
+                  class="material-symbols-outlined text-3xl text-white/50 mb-1"
+                  >cloud_upload</span
+                >
+                <span class="text-sm text-white/60">
+                  {fileName || "Click to select .xlsx / .xls file"}
+                </span>
+                <input
+                  bind:this={fileInput}
+                  type="file"
+                  name="file"
+                  accept=".xlsx,.xls"
+                  class="hidden"
+                  required
+                  on:change={() => {
+                    fileName = fileInput?.files?.[0]?.name ?? "";
+                  }}
+                />
+              </label>
+            </div>
+            <button
+              type="submit"
+              disabled={uploading}
+              class="shrink-0 px-7 py-3 bg-white text-blue-600 text-sm font-bold rounded-2xl hover:bg-blue-50 transition-colors disabled:opacity-50 flex items-center gap-2 shadow-lg"
+            >
+              {#if uploading}
+                <svg
+                  class="animate-spin h-4 w-4"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                >
+                  <circle
+                    class="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    stroke-width="4"
+                  />
+                  <path
+                    class="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8v8H4z"
+                  />
+                </svg>
+              {:else}
+                <span class="material-symbols-outlined text-[18px]"
+                  >upload_file</span
+                >
+              {/if}
+              Upload
+            </button>
+          </div>
+        </form>
+      </div>
+    {/if}
   </div>
 </div>
 

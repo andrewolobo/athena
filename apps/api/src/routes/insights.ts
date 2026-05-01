@@ -188,7 +188,9 @@ router.get(
         buildFieldDescriptors(survey).find((f) => f.name === field) ?? null;
 
       if (!descriptor) {
-        return next(createError(`Field '${field}' not found in this form`, 404));
+        return next(
+          createError(`Field '${field}' not found in this form`, 404),
+        );
       }
       if (!isPinnableKind(descriptor.kind) || descriptor.kind !== kind) {
         return next(
@@ -278,7 +280,11 @@ router.get(
         if (restRows.length > 0) {
           const otherCount = restRows.reduce((acc, r) => acc + r.count, 0);
           if (otherCount > 0) {
-            buckets.push({ key: "__other__", label: "Other", count: otherCount });
+            buckets.push({
+              key: "__other__",
+              label: "Other",
+              count: otherCount,
+            });
           }
         }
 
@@ -376,6 +382,7 @@ const CreateInsightSchema = z.object({
   data_kind: DataKindEnum,
   time_grain: TimeGrainEnum.optional(),
   filters: z.record(z.unknown()).optional(),
+  dashboard_id: z.string().uuid().optional(),
 });
 
 const UpdateInsightSchema = z.object({
@@ -412,146 +419,158 @@ function validateChartShape(
 
 // ── GET /insights/mine ────────────────────────────────────────
 // Returns the caller's pinned insights, ordered for the dashboard grid.
-router.get(
-  "/mine",
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const result = await pool.query(
-        `SELECT id, org_id, user_id, form_id, folder_schema, form_key,
+router.get("/mine", async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const params: unknown[] = [req.user!.id];
+    let dashboardFilter = "";
+    const rawDashboardId = req.query.dashboard_id;
+    if (typeof rawDashboardId === "string" && rawDashboardId.trim()) {
+      params.push(rawDashboardId.trim());
+      dashboardFilter = `AND dashboard_id = $${params.length}`;
+    }
+
+    const result = await pool.query(
+      `SELECT id, org_id, user_id, form_id, folder_schema, form_key,
                 field_name, title, description, chart_type, data_kind,
-                time_grain, filters, is_pinned, pin_order,
+                time_grain, filters, is_pinned, pin_order, dashboard_id,
                 created_at, updated_at
            FROM public.user_insights
           WHERE user_id = $1 AND is_pinned = TRUE
+          ${dashboardFilter}
           ORDER BY pin_order ASC, created_at DESC`,
-        [req.user!.id],
-      );
-      res.json(result.rows);
-    } catch (err) {
-      next(err);
-    }
-  },
-);
+      params,
+    );
+    res.json(result.rows);
+  } catch (err) {
+    next(err);
+  }
+});
 
 // ── POST /insights ────────────────────────────────────────────
 // Persists a new pinned insight after validating that the field exists
 // in the form's latest xlsform_json and matches the requested data_kind.
-router.post(
-  "/",
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const parsed = CreateInsightSchema.safeParse(req.body);
-      if (!parsed.success) {
-        return next(createError(parsed.error.issues[0].message, 422));
-      }
-      const d = parsed.data;
+router.post("/", async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const parsed = CreateInsightSchema.safeParse(req.body);
+    if (!parsed.success) {
+      return next(createError(parsed.error.issues[0].message, 422));
+    }
+    const d = parsed.data;
 
-      const shapeErr = validateChartShape(
-        d.data_kind,
-        d.chart_type,
-        d.time_grain ?? null,
-      );
-      if (shapeErr) return next(createError(shapeErr, 422));
+    const shapeErr = validateChartShape(
+      d.data_kind,
+      d.chart_type,
+      d.time_grain ?? null,
+    );
+    if (shapeErr) return next(createError(shapeErr, 422));
 
-      // Form must belong to caller's org. Resolves folder_schema /
-      // form_key from the registry so the client can't spoof them.
-      const formResult = await pool.query<{
-        id: string;
-        folder_schema: string;
-        form_key: string;
-      }>(
-        `SELECT id, folder_schema, form_key FROM public.forms
+    // Form must belong to caller's org. Resolves folder_schema /
+    // form_key from the registry so the client can't spoof them.
+    const formResult = await pool.query<{
+      id: string;
+      folder_schema: string;
+      form_key: string;
+    }>(
+      `SELECT id, folder_schema, form_key FROM public.forms
           WHERE id = $1 AND org_id = $2`,
-        [d.form_id, req.user!.org_id],
+      [d.form_id, req.user!.org_id],
+    );
+    if (!formResult.rows[0]) {
+      return next(createError("Form not found in this organisation", 404));
+    }
+    const form = formResult.rows[0];
+
+    // Verify the field exists in the latest xlsform_json and that its
+    // derived kind matches the requested data_kind.
+    const survey = await loadLatestSurvey(pool, form.id);
+    const descriptor =
+      buildFieldDescriptors(survey).find((f) => f.name === d.field_name) ??
+      null;
+    if (!descriptor) {
+      return next(
+        createError(`Field '${d.field_name}' not found in this form`, 404),
       );
-      if (!formResult.rows[0]) {
-        return next(createError("Form not found in this organisation", 404));
-      }
-      const form = formResult.rows[0];
+    }
+    if (!isPinnableKind(descriptor.kind) || descriptor.kind !== d.data_kind) {
+      return next(
+        createError(
+          `Field '${d.field_name}' is ${descriptor.kind}; cannot pin as ${d.data_kind}`,
+          422,
+        ),
+      );
+    }
 
-      // Verify the field exists in the latest xlsform_json and that its
-      // derived kind matches the requested data_kind.
-      const survey = await loadLatestSurvey(pool, form.id);
-      const descriptor =
-        buildFieldDescriptors(survey).find((f) => f.name === d.field_name) ??
-        null;
-      if (!descriptor) {
-        return next(
-          createError(`Field '${d.field_name}' not found in this form`, 404),
-        );
+    // If a dashboard_id was provided, verify it belongs to the caller.
+    if (d.dashboard_id) {
+      const dashResult = await pool.query(
+        `SELECT id FROM public.user_dashboards WHERE id = $1 AND user_id = $2`,
+        [d.dashboard_id, req.user!.id],
+      );
+      if (!dashResult.rows[0]) {
+        return next(createError("Dashboard not found", 404));
       }
-      if (
-        !isPinnableKind(descriptor.kind) ||
-        descriptor.kind !== d.data_kind
-      ) {
-        return next(
-          createError(
-            `Field '${d.field_name}' is ${descriptor.kind}; cannot pin as ${d.data_kind}`,
-            422,
-          ),
-        );
-      }
+    }
 
-      // Per-user cap. There's a benign race here under concurrent
-      // create requests; acceptable at Alpha scope.
-      const countResult = await pool.query<{ count: string }>(
-        `SELECT COUNT(*)::text AS count
+    // Per-user cap. There's a benign race here under concurrent
+    // create requests; acceptable at Alpha scope.
+    const countResult = await pool.query<{ count: string }>(
+      `SELECT COUNT(*)::text AS count
            FROM public.user_insights
           WHERE user_id = $1`,
-        [req.user!.id],
+      [req.user!.id],
+    );
+    const existing = parseInt(countResult.rows[0]?.count ?? "0", 10);
+    if (existing >= MAX_INSIGHTS_PER_USER) {
+      return next(
+        createError(
+          `You have reached the limit of ${MAX_INSIGHTS_PER_USER} pinned insights`,
+          409,
+        ),
       );
-      const existing = parseInt(countResult.rows[0]?.count ?? "0", 10);
-      if (existing >= MAX_INSIGHTS_PER_USER) {
-        return next(
-          createError(
-            `You have reached the limit of ${MAX_INSIGHTS_PER_USER} pinned insights`,
-            409,
-          ),
-        );
-      }
+    }
 
-      // Append at the end of the grid. NULL + 1 = NULL, so COALESCE to 0.
-      const orderResult = await pool.query<{ next_order: number | null }>(
-        `SELECT COALESCE(MAX(pin_order), -1) + 1 AS next_order
+    // Append at the end of the grid. NULL + 1 = NULL, so COALESCE to 0.
+    const orderResult = await pool.query<{ next_order: number | null }>(
+      `SELECT COALESCE(MAX(pin_order), -1) + 1 AS next_order
            FROM public.user_insights
           WHERE user_id = $1`,
-        [req.user!.id],
-      );
-      const pin_order = orderResult.rows[0]?.next_order ?? 0;
+      [req.user!.id],
+    );
+    const pin_order = orderResult.rows[0]?.next_order ?? 0;
 
-      const insertResult = await pool.query(
-        `INSERT INTO public.user_insights
+    const insertResult = await pool.query(
+      `INSERT INTO public.user_insights
                 (org_id, user_id, form_id, folder_schema, form_key, field_name,
                  title, description, chart_type, data_kind, time_grain,
-                 filters, is_pinned, pin_order)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, TRUE, $13)
+                 filters, is_pinned, pin_order, dashboard_id)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, TRUE, $13, $14)
          RETURNING id, org_id, user_id, form_id, folder_schema, form_key,
                    field_name, title, description, chart_type, data_kind,
-                   time_grain, filters, is_pinned, pin_order,
+                   time_grain, filters, is_pinned, pin_order, dashboard_id,
                    created_at, updated_at`,
-        [
-          req.user!.org_id,
-          req.user!.id,
-          form.id,
-          form.folder_schema,
-          form.form_key,
-          d.field_name,
-          d.title,
-          d.description ?? null,
-          d.chart_type,
-          d.data_kind,
-          d.time_grain ?? null,
-          JSON.stringify(d.filters ?? {}),
-          pin_order,
-        ],
-      );
+      [
+        req.user!.org_id,
+        req.user!.id,
+        form.id,
+        form.folder_schema,
+        form.form_key,
+        d.field_name,
+        d.title,
+        d.description ?? null,
+        d.chart_type,
+        d.data_kind,
+        d.time_grain ?? null,
+        JSON.stringify(d.filters ?? {}),
+        pin_order,
+        d.dashboard_id ?? null,
+      ],
+    );
 
-      res.status(201).json(insertResult.rows[0]);
-    } catch (err) {
-      next(err);
-    }
-  },
-);
+    res.status(201).json(insertResult.rows[0]);
+  } catch (err) {
+    next(err);
+  }
+});
 
 // ── PATCH /insights/:id ───────────────────────────────────────
 // Owner-only update. Re-validates the chart shape against the row's
@@ -609,7 +628,8 @@ router.patch(
       };
 
       if (patch.title !== undefined) push("title", patch.title);
-      if (patch.description !== undefined) push("description", patch.description);
+      if (patch.description !== undefined)
+        push("description", patch.description);
       if (patch.chart_type !== undefined) push("chart_type", patch.chart_type);
       if (patch.time_grain !== undefined) push("time_grain", patch.time_grain);
       if (patch.pin_order !== undefined) push("pin_order", patch.pin_order);

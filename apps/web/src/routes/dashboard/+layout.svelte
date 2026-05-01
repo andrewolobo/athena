@@ -19,7 +19,7 @@
       label: "Data Explorer",
       icon: "table",
     },
-    { href: "/dashboard/indicators", label: "Indicators", icon: "analytics" },
+    // { href: "/dashboard/indicators", label: "Indicators", icon: "analytics" },
     { href: "/dashboard/reporting", label: "Reporting", icon: "bar_chart" },
   ] as const;
 

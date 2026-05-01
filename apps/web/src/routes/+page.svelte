@@ -185,7 +185,10 @@
   </section>
 
   <!-- Features Bento Grid -->
-  <section id="features" class="py-24 bg-surface-container-low">
+  <section
+    id="features"
+    class="py-24 bg-surface-container-lo bg-[lightskyblue]"
+  >
     <div class="max-w-7xl mx-auto px-8">
       <div class="text-center mb-20">
         <h2
@@ -308,7 +311,7 @@
   </section>
 
   <!-- Social Proof -->
-  <section id="social-proof" class="py-24 bg-surface">
+  <!-- <section id="social-proof" class="py-24 bg-surface">
     <div class="max-w-7xl mx-auto px-8">
       <div class="text-center mb-16">
         <p
@@ -332,7 +335,7 @@
         <div class="h-8 md:h-12 w-32 bg-on-surface/20 rounded-md"></div>
       </div>
     </div>
-  </section>
+  </section> -->
 
   <!-- Final CTA -->
   <section class="py-24 px-8">

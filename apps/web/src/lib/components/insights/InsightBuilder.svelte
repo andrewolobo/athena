@@ -5,6 +5,7 @@
     InsightChartType,
     InsightField,
     InsightTimeGrain,
+    UserDashboard,
   } from "$lib/types";
   import ChartView from "./ChartView.svelte";
   import { exportElementAsPng, buildInsightFilename } from "./exportPng";
@@ -35,6 +36,16 @@
   let saving = false;
   let saveError: string | null = null;
   let savedId: string | null = null;
+  let savedDashboardName = "";
+
+  // Dashboard picker state
+  let dashboards: UserDashboard[] = [];
+  let selectedDashboardId: string | null = null;
+  let showNewDashboard = false;
+  let newDashboardName = "";
+  let creatingDashboard = false;
+  let dashboardsLoading = false;
+  let dashboardsFetched = false;
 
   // PNG export state
   let previewEl: HTMLElement | undefined;
@@ -56,8 +67,54 @@
     saving = false;
     saveError = null;
     savedId = null;
+    savedDashboardName = "";
     exporting = false;
     exportError = null;
+  }
+
+  // Fetch dashboards the first time the panel opens.
+  $: if (open && !dashboardsFetched) {
+    fetchDashboards();
+  }
+
+  async function fetchDashboards(): Promise<void> {
+    dashboardsLoading = true;
+    dashboardsFetched = true;
+    try {
+      const res = await fetch("/api/dashboards");
+      if (!res.ok) throw new Error("Failed to load dashboards");
+      dashboards = (await res.json()) as UserDashboard[];
+      const def = dashboards.find((d) => d.is_default) ?? dashboards[0] ?? null;
+      selectedDashboardId = def?.id ?? null;
+      showNewDashboard = dashboards.length === 0;
+    } catch {
+      // Don't block the panel on failure; pinning will remain disabled.
+    } finally {
+      dashboardsLoading = false;
+    }
+  }
+
+  async function createDashboard(): Promise<void> {
+    const name = newDashboardName.trim();
+    if (!name) return;
+    creatingDashboard = true;
+    try {
+      const res = await fetch("/api/dashboards", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name }),
+      });
+      if (!res.ok) throw new Error("Failed to create dashboard");
+      const created = (await res.json()) as UserDashboard;
+      dashboards = [created, ...dashboards];
+      selectedDashboardId = created.id;
+      showNewDashboard = false;
+      newDashboardName = "";
+    } catch {
+      // Silently ignore; user can retry.
+    } finally {
+      creatingDashboard = false;
+    }
   }
 
   // ── Debounced fetch ─────────────────────────────────────
@@ -103,7 +160,9 @@
       const res = await fetch(`/api/insights/aggregate?${params.toString()}`);
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
-        throw new Error(body.error ?? `Aggregate request failed (${res.status})`);
+        throw new Error(
+          body.error ?? `Aggregate request failed (${res.status})`,
+        );
       }
       aggregate = (await res.json()) as InsightAggregate;
     } catch (err) {
@@ -123,12 +182,15 @@
    *  pinnable AND the page has resolved a form_id from the active form
    *  selector — without it we can't address a row in public.forms. */
   async function pinInsight(): Promise<void> {
-    if (!field || !formId) return;
+    if (!field || !formId || !selectedDashboardId) return;
     if (field.kind !== "categorical" && field.kind !== "temporal") return;
 
     saving = true;
     saveError = null;
 
+    const dashName =
+      dashboards.find((d) => d.id === selectedDashboardId)?.name ??
+      "your dashboard";
     const body = {
       form_id: formId,
       field_name: field.name,
@@ -137,6 +199,7 @@
       chart_type: chartType,
       data_kind: field.kind,
       time_grain: field.kind === "temporal" ? timeGrain : undefined,
+      dashboard_id: selectedDashboardId,
     };
 
     try {
@@ -151,8 +214,9 @@
       }
       const created = (await res.json()) as { id: string };
       savedId = created.id;
+      savedDashboardName = dashName;
       dispatch("pinned", { id: created.id });
-      pushToast("success", INSIGHT_LABELS.toastPinned);
+      pushToast("success", `Insight pinned to ${dashName}.`);
     } catch (err) {
       saveError = err instanceof Error ? err.message : "Failed to pin insight";
       pushToast("error", `${INSIGHT_LABELS.toastPinFailed} ${saveError}`);
@@ -164,6 +228,7 @@
   $: canPin =
     !!field &&
     !!formId &&
+    !!selectedDashboardId &&
     (field.kind === "categorical" || field.kind === "temporal") &&
     !saving &&
     !savedId &&
@@ -194,15 +259,15 @@
 
   $: chartTypeOptions =
     field?.kind === "temporal"
-      ? ([{ value: "line" as const, label: "Line", icon: "show_chart" }])
-      : ([
+      ? [{ value: "line" as const, label: "Line", icon: "show_chart" }]
+      : [
           { value: "pie" as const, label: "Pie", icon: "pie_chart" },
           {
             value: "bar_horizontal" as const,
             label: "Horizontal bar",
             icon: "bar_chart",
           },
-        ]);
+        ];
 
   const TIME_GRAINS: InsightTimeGrain[] = ["day", "week", "month"];
 </script>
@@ -228,7 +293,9 @@
       class="flex items-center justify-between px-5 py-4 border-b border-surface-variant/40"
     >
       <div class="min-w-0">
-        <h2 class="font-headline text-lg font-semibold text-on-surface truncate">
+        <h2
+          class="font-headline text-lg font-semibold text-on-surface truncate"
+        >
           {field?.label ?? "Insight"}
         </h2>
         <p class="text-xs text-on-surface/50 mt-0.5 truncate">
@@ -312,7 +379,9 @@
             <span class="text-xs font-medium text-on-surface/70 block mb-1"
               >Group by</span
             >
-            <div class="inline-flex rounded-xl bg-white shadow-sm overflow-hidden">
+            <div
+              class="inline-flex rounded-xl bg-white shadow-sm overflow-hidden"
+            >
               {#each TIME_GRAINS as g (g)}
                 <button
                   type="button"
@@ -387,8 +456,9 @@
         <h3
           class="text-[10px] font-bold uppercase tracking-widest text-on-surface/40 mb-3"
         >
-          Dashboard pinning
+          Pin to Dashboard
         </h3>
+
         {#if savedId}
           <div
             class="bg-primary/10 text-primary rounded-xl px-4 py-3 text-xs flex items-center gap-2"
@@ -396,13 +466,12 @@
             <span class="material-symbols-outlined text-[16px]"
               >check_circle</span
             >
-            Pinned to your dashboard.
-            <a href="/dashboard" class="underline font-medium">View</a>
+            Pinned to <strong>{savedDashboardName}</strong>.
+            <a href="/dashboard/reporting" class="underline font-medium">View</a
+            >
           </div>
         {:else if saveError}
-          <div
-            class="bg-error/10 text-error rounded-xl px-4 py-3 text-xs"
-          >
+          <div class="bg-error/10 text-error rounded-xl px-4 py-3 text-xs">
             {saveError}
           </div>
         {:else if !formId}
@@ -411,11 +480,76 @@
           >
             Select a form first to enable pinning.
           </div>
-        {:else}
+        {:else if dashboardsLoading}
           <div
             class="bg-surface-container-low rounded-xl px-4 py-3 text-xs text-on-surface/60"
           >
-            Save this chart to your home dashboard for ongoing monitoring.
+            Loading dashboards…
+          </div>
+        {:else if dashboards.length === 0 || showNewDashboard}
+          {#if dashboards.length === 0}
+            <p class="text-xs text-on-surface/60 mb-3">
+              You haven't created any dashboards yet. Create one to start
+              pinning charts.
+            </p>
+          {:else}
+            <button
+              type="button"
+              on:click={() => (showNewDashboard = false)}
+              class="text-xs text-on-surface/50 hover:text-on-surface mb-3 flex items-center gap-1 transition-colors"
+            >
+              <span class="material-symbols-outlined text-[14px]"
+                >arrow_back</span
+              >
+              Back to dashboard list
+            </button>
+          {/if}
+          <div class="flex items-center gap-2">
+            <input
+              type="text"
+              bind:value={newDashboardName}
+              placeholder="Dashboard name"
+              maxlength="80"
+              class="flex-1 px-3 py-2 text-sm rounded-xl bg-white border-0 shadow-sm text-on-surface focus:ring-2 focus:ring-primary"
+            />
+            <button
+              type="button"
+              on:click={createDashboard}
+              disabled={!newDashboardName.trim() || creatingDashboard}
+              class="px-3 py-2 text-sm font-medium rounded-xl transition-colors
+                {newDashboardName.trim() && !creatingDashboard
+                ? 'bg-primary text-white hover:bg-primary-dim cursor-pointer'
+                : 'bg-primary/40 text-white cursor-not-allowed'}"
+            >
+              {creatingDashboard ? "Creating…" : "Create"}
+            </button>
+          </div>
+        {:else}
+          <!-- Dashboard selector dropdown -->
+          <div class="relative">
+            <select
+              value={selectedDashboardId}
+              on:change={(e) => {
+                const v = e.currentTarget.value;
+                if (v === "__new__") {
+                  showNewDashboard = true;
+                } else {
+                  selectedDashboardId = v;
+                }
+              }}
+              class="w-full px-3 py-2 text-sm rounded-xl bg-white border-0 shadow-sm text-on-surface focus:ring-2 focus:ring-primary appearance-none pr-8"
+            >
+              {#each dashboards as d (d.id)}
+                <option value={d.id}>
+                  {d.name}{d.is_default ? " (default)" : ""}
+                </option>
+              {/each}
+              <option value="__new__">── Create new dashboard ──</option>
+            </select>
+            <span
+              class="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-[18px] text-on-surface/50 pointer-events-none"
+              >expand_more</span
+            >
           </div>
         {/if}
       </section>

@@ -167,6 +167,144 @@ components:
         is_read: { type: boolean }
         created_at: { $ref: "#/components/schemas/ISOTimestamp" }
 
+    UserDashboard:
+      type: object
+      required:
+        [
+          id,
+          org_id,
+          user_id,
+          name,
+          is_default,
+          display_order,
+          created_at,
+          updated_at,
+        ]
+      properties:
+        id: { $ref: "#/components/schemas/UUID" }
+        org_id: { $ref: "#/components/schemas/UUID" }
+        user_id: { $ref: "#/components/schemas/UUID" }
+        name:
+          type: string
+          minLength: 1
+          maxLength: 80
+        description:
+          type: string
+          maxLength: 300
+          nullable: true
+        is_default: { type: boolean }
+        display_order: { type: integer, minimum: 0 }
+        created_at: { $ref: "#/components/schemas/ISOTimestamp" }
+        updated_at: { $ref: "#/components/schemas/ISOTimestamp" }
+
+    InsightChartType:
+      type: string
+      enum: [pie, bar_horizontal, line]
+
+    InsightDataKind:
+      type: string
+      enum: [categorical, temporal]
+
+    InsightTimeGrain:
+      type: string
+      enum: [day, week, month]
+
+    UserInsight:
+      type: object
+      required:
+        [
+          id,
+          org_id,
+          user_id,
+          form_id,
+          folder_schema,
+          form_key,
+          field_name,
+          title,
+          chart_type,
+          data_kind,
+          filters,
+          is_pinned,
+          pin_order,
+          created_at,
+          updated_at,
+        ]
+      properties:
+        id: { $ref: "#/components/schemas/UUID" }
+        org_id: { $ref: "#/components/schemas/UUID" }
+        user_id: { $ref: "#/components/schemas/UUID" }
+        form_id: { $ref: "#/components/schemas/UUID" }
+        folder_schema: { type: string }
+        form_key: { type: string }
+        field_name: { type: string }
+        title: { type: string, maxLength: 120 }
+        description: { type: string, maxLength: 500, nullable: true }
+        chart_type: { $ref: "#/components/schemas/InsightChartType" }
+        data_kind: { $ref: "#/components/schemas/InsightDataKind" }
+        time_grain:
+          { $ref: "#/components/schemas/InsightTimeGrain", nullable: true }
+        filters: { type: object, additionalProperties: true }
+        is_pinned: { type: boolean }
+        pin_order: { type: integer, minimum: 0 }
+        dashboard_id:
+          allOf:
+            - { $ref: "#/components/schemas/UUID" }
+          nullable: true
+          description: |
+            The dashboard this insight is pinned to.
+            null for legacy insights created before the dashboards feature.
+        created_at: { $ref: "#/components/schemas/ISOTimestamp" }
+        updated_at: { $ref: "#/components/schemas/ISOTimestamp" }
+
+    InsightFieldDescriptor:
+      type: object
+      required: [name, label, xlsform_type, kind]
+      properties:
+        name: { type: string }
+        label: { type: string }
+        xlsform_type: { type: string }
+        kind:
+          type: string
+          enum: [categorical, temporal, numerical, unknown]
+
+    InsightAggregateBucket:
+      type: object
+      required: [key, label, count]
+      properties:
+        key: { type: string }
+        label: { type: string }
+        count: { type: integer }
+
+    InsightAggregateCategorical:
+      type: object
+      required: [field, label, kind, buckets, total]
+      properties:
+        field: { type: string }
+        label: { type: string }
+        kind: { type: string, enum: [categorical] }
+        buckets:
+          type: array
+          items: { $ref: "#/components/schemas/InsightAggregateBucket" }
+        total: { type: integer }
+
+    InsightAggregateTemporal:
+      type: object
+      required: [field, label, kind, time_grain, series, total]
+      properties:
+        field: { type: string }
+        label: { type: string }
+        kind: { type: string, enum: [temporal] }
+        time_grain: { $ref: "#/components/schemas/InsightTimeGrain" }
+        series:
+          type: array
+          items:
+            type: object
+            required: [bucket, count]
+            properties:
+              bucket: { type: string, format: date }
+              count: { type: integer }
+        total: { type: integer }
+
     Pagination:
       type: object
       properties:
@@ -1241,4 +1379,356 @@ paths:
           schema: { $ref: "#/components/schemas/UUID" }
       responses:
         "204": { description: Marked as read }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  # ── Dashboards ────────────────────────────────────────────────
+  /dashboards:
+    get:
+      operationId: listDashboards
+      summary: List the authenticated user's dashboards
+      description: |
+        Returns all dashboards owned by the caller, ordered with the default
+        first, then by display_order, then by creation time.
+      tags: [Dashboards]
+      x-roles: [admin, supervisor]
+      responses:
+        "200":
+          description: Dashboard list
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/UserDashboard" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+
+    post:
+      operationId: createDashboard
+      summary: Create a new dashboard
+      description: |
+        Creates a named dashboard for the authenticated user.
+        If `is_default` is true, any existing default is atomically demoted.
+        Maximum 20 dashboards per user.
+      tags: [Dashboards]
+      x-roles: [admin, supervisor]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name:
+                  type: string
+                  minLength: 1
+                  maxLength: 80
+                description:
+                  type: string
+                  maxLength: 300
+                is_default:
+                  type: boolean
+                  default: false
+      responses:
+        "201":
+          description: Dashboard created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/UserDashboard" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "409":
+          description: Dashboard cap (20) reached
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "422": { $ref: "#/components/responses/UnprocessableEntity" }
+
+  /dashboards/{id}:
+    patch:
+      operationId: updateDashboard
+      summary: Update a dashboard's name, description, default flag, or order
+      description: |
+        Owner-only. When `is_default` is set to true, any existing default
+        is atomically demoted in the same transaction.
+      tags: [Dashboards]
+      x-roles: [admin, supervisor]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { $ref: "#/components/schemas/UUID" }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              minProperties: 1
+              properties:
+                name:
+                  type: string
+                  minLength: 1
+                  maxLength: 80
+                description:
+                  type: string
+                  maxLength: 300
+                  nullable: true
+                is_default:
+                  type: boolean
+                display_order:
+                  type: integer
+                  minimum: 0
+      responses:
+        "200":
+          description: Updated dashboard
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/UserDashboard" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "422": { $ref: "#/components/responses/UnprocessableEntity" }
+
+    delete:
+      operationId: deleteDashboard
+      summary: Delete a dashboard and all its pinned insights
+      description: |
+        Owner-only hard delete. Cascades to all `user_insights` rows
+        with a matching `dashboard_id`.
+      tags: [Dashboards]
+      x-roles: [admin, supervisor]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { $ref: "#/components/schemas/UUID" }
+      responses:
+        "204": { description: Dashboard deleted }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  # ── Insights ──────────────────────────────────────────────────
+  /insights/fields:
+    get:
+      operationId: listInsightFields
+      summary: List pinnable fields for a form
+      description: |
+        Returns every leaf field from the form's latest xlsform_json,
+        each annotated with its analytic `kind` (categorical, temporal,
+        numerical, unknown). The UI uses `kind` to enable or disable the
+        Insight affordance per column header.
+      tags: [Insights]
+      x-roles: [admin, supervisor]
+      parameters:
+        - name: folder_schema
+          in: query
+          required: true
+          schema: { type: string }
+        - name: form_key
+          in: query
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Field descriptor list
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/InsightFieldDescriptor" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /insights/aggregate:
+    get:
+      operationId: getInsightAggregate
+      summary: Aggregate submissions for a single payload field
+      description: |
+        Returns counted buckets (categorical) or a date series (temporal)
+        for one field in one form. The field is validated against the
+        latest xlsform_json before the query runs.
+      tags: [Insights]
+      x-roles: [admin, supervisor]
+      parameters:
+        - name: folder_schema
+          in: query
+          required: true
+          schema: { type: string }
+        - name: form_key
+          in: query
+          required: true
+          schema: { type: string }
+        - name: field
+          in: query
+          required: true
+          schema: { type: string }
+          description: Payload JSONB key — must match a leaf field in the xlsform_json.
+        - name: kind
+          in: query
+          required: true
+          schema: { $ref: "#/components/schemas/InsightDataKind" }
+        - name: time_grain
+          in: query
+          schema: { $ref: "#/components/schemas/InsightTimeGrain" }
+          description: Required when kind=temporal. Defaults to month.
+        - name: status
+          in: query
+          schema: { $ref: "#/components/schemas/SubmissionStatus" }
+          description: |
+            Filter to a single status. When omitted, quarantined
+            submissions are excluded and all others are included.
+      responses:
+        "200":
+          description: Aggregate result
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - { $ref: "#/components/schemas/InsightAggregateCategorical" }
+                  - { $ref: "#/components/schemas/InsightAggregateTemporal" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "422": { $ref: "#/components/responses/UnprocessableEntity" }
+
+  /insights/mine:
+    get:
+      operationId: listMyInsights
+      summary: Get the authenticated user's pinned insights
+      description: |
+        Returns all pinned insights for the caller, ordered by
+        `pin_order ASC, created_at DESC`. When `dashboard_id` is
+        provided, only insights belonging to that dashboard are returned.
+        When omitted, all pinned insights are returned (backward-compatible
+        with the pre-dashboard home grid).
+      tags: [Insights]
+      x-roles: [admin, supervisor]
+      parameters:
+        - name: dashboard_id
+          in: query
+          required: false
+          schema: { $ref: "#/components/schemas/UUID" }
+          description: |
+            Filter to insights belonging to a specific dashboard.
+            When absent, all pinned insights are returned.
+      responses:
+        "200":
+          description: Pinned insights
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/UserInsight" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+
+  /insights:
+    post:
+      operationId: createInsight
+      summary: Pin a new insight chart
+      description: |
+        Persists a chart configuration derived from a form field.
+        The field is validated against the form's latest xlsform_json
+        and its derived kind must match `data_kind`.
+        Maximum 50 pinned insights per user.
+      tags: [Insights]
+      x-roles: [admin, supervisor]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [form_id, field_name, title, chart_type, data_kind]
+              properties:
+                form_id: { $ref: "#/components/schemas/UUID" }
+                field_name: { type: string }
+                title: { type: string, maxLength: 120 }
+                description: { type: string, maxLength: 500 }
+                chart_type: { $ref: "#/components/schemas/InsightChartType" }
+                data_kind: { $ref: "#/components/schemas/InsightDataKind" }
+                time_grain: { $ref: "#/components/schemas/InsightTimeGrain" }
+                filters: { type: object, additionalProperties: true }
+                dashboard_id:
+                  allOf:
+                    - { $ref: "#/components/schemas/UUID" }
+                  description: |
+                    The dashboard to pin this insight to. Must belong to
+                    the authenticated user. When omitted the insight is
+                    created without a dashboard binding (legacy behaviour).
+      responses:
+        "201":
+          description: Insight created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/UserInsight" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409":
+          description: Insight cap (50) reached
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "422": { $ref: "#/components/responses/UnprocessableEntity" }
+
+  /insights/{id}:
+    patch:
+      operationId: updateInsight
+      summary: Update a pinned insight's display properties
+      description: Owner-only. Re-validates chart shape on every update.
+      tags: [Insights]
+      x-roles: [admin, supervisor]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { $ref: "#/components/schemas/UUID" }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              minProperties: 1
+              properties:
+                title: { type: string, minLength: 1, maxLength: 120 }
+                description: { type: string, maxLength: 500, nullable: true }
+                chart_type: { $ref: "#/components/schemas/InsightChartType" }
+                time_grain:
+                  {
+                    $ref: "#/components/schemas/InsightTimeGrain",
+                    nullable: true,
+                  }
+                pin_order: { type: integer, minimum: 0 }
+                is_pinned: { type: boolean }
+      responses:
+        "200":
+          description: Updated insight
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/UserInsight" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "422": { $ref: "#/components/responses/UnprocessableEntity" }
+
+    delete:
+      operationId: deleteInsight
+      summary: Delete a pinned insight
+      description: Owner-only hard delete.
+      tags: [Insights]
+      x-roles: [admin, supervisor]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { $ref: "#/components/schemas/UUID" }
+      responses:
+        "204": { description: Insight deleted }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
         "404": { $ref: "#/components/responses/NotFound" }

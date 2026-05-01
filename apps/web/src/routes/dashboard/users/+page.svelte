@@ -44,6 +44,10 @@
   $: if (form?.passwordSuccess) passwordOpenId = null;
 </script>
 
+<svelte:head>
+  <title>User Management — Athena</title>
+</svelte:head>
+
 <div class="px-6 py-6 md:px-8 flex items-start justify-between gap-4 flex-wrap">
   <div>
     <h1 class="font-headline text-2xl font-semibold text-on-surface">User Management</h1>

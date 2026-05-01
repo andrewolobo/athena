@@ -34,7 +34,8 @@
     data.folderSchema && data.formKey
       ? (data.forms.find(
           (f) =>
-            f.folder_schema === data.folderSchema && f.form_key === data.formKey,
+            f.folder_schema === data.folderSchema &&
+            f.form_key === data.formKey,
         )?.id ?? null)
       : null;
 
@@ -47,6 +48,10 @@
   }
 </script>
 
+<svelte:head>
+  <title>Data Explorer — Athena</title>
+</svelte:head>
+
 <div class="px-6 py-6 md:px-8">
   <h1 class="font-headline text-2xl font-semibold text-on-surface">
     Data Explorer
@@ -54,6 +59,250 @@
   <p class="text-sm text-on-surface/50 mt-0.5">
     View full submission data as a tabular dataset
   </p>
+</div>
+
+<!-- ─── Hero banner ─────────────────────────────────── -->
+<div class="px-6 md:px-8 mb-6">
+  <div
+    class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-blue-600 via-blue-500 to-indigo-600 min-h-[200px] flex items-center"
+    style="min-height: 210px;"
+  >
+    <!-- Decorative blobs -->
+    <div
+      class="absolute -top-10 -right-10 w-64 h-64 rounded-full bg-white/10 blur-2xl pointer-events-none"
+    ></div>
+    <div
+      class="absolute bottom-0 left-1/2 w-80 h-48 rounded-full bg-indigo-400/20 blur-3xl pointer-events-none"
+    ></div>
+
+    <!-- Decorative SVG illustration (right side) -->
+    <div
+      class="absolute right-6 bottom-0 opacity-20 select-none pointer-events-none hidden sm:block"
+    >
+      <svg
+        width="220"
+        height="210"
+        viewBox="0 0 220 210"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <!-- Table frame -->
+        <rect
+          x="15"
+          y="30"
+          width="190"
+          height="155"
+          rx="8"
+          stroke="white"
+          stroke-width="1.5"
+        />
+        <!-- Header row fill -->
+        <rect
+          x="15"
+          y="30"
+          width="190"
+          height="32"
+          rx="8"
+          fill="white"
+          fill-opacity="0.3"
+        />
+        <!-- Clip the bottom corners of the header fill -->
+        <rect
+          x="15"
+          y="50"
+          width="190"
+          height="12"
+          fill="white"
+          fill-opacity="0.3"
+        />
+        <!-- Column dividers -->
+        <line
+          x1="78"
+          y1="30"
+          x2="78"
+          y2="185"
+          stroke="white"
+          stroke-width="1"
+          stroke-opacity="0.5"
+        />
+        <line
+          x1="141"
+          y1="30"
+          x2="141"
+          y2="185"
+          stroke="white"
+          stroke-width="1"
+          stroke-opacity="0.5"
+        />
+        <!-- Row dividers -->
+        <line
+          x1="15"
+          y1="62"
+          x2="205"
+          y2="62"
+          stroke="white"
+          stroke-width="1"
+          stroke-opacity="0.4"
+        />
+        <line
+          x1="15"
+          y1="92"
+          x2="205"
+          y2="92"
+          stroke="white"
+          stroke-width="1"
+          stroke-opacity="0.4"
+        />
+        <line
+          x1="15"
+          y1="122"
+          x2="205"
+          y2="122"
+          stroke="white"
+          stroke-width="1"
+          stroke-opacity="0.4"
+        />
+        <line
+          x1="15"
+          y1="152"
+          x2="205"
+          y2="152"
+          stroke="white"
+          stroke-width="1"
+          stroke-opacity="0.4"
+        />
+        <!-- Header labels -->
+        <rect x="25" y="40" width="38" height="6" rx="3" fill="white" />
+        <rect x="88" y="40" width="34" height="6" rx="3" fill="white" />
+        <rect x="151" y="40" width="34" height="6" rx="3" fill="white" />
+        <!-- Row 1 -->
+        <rect
+          x="25"
+          y="72"
+          width="30"
+          height="5"
+          rx="2"
+          fill="white"
+          fill-opacity="0.7"
+        />
+        <rect
+          x="88"
+          y="72"
+          width="44"
+          height="5"
+          rx="2"
+          fill="white"
+          fill-opacity="0.7"
+        />
+        <rect
+          x="151"
+          y="72"
+          width="24"
+          height="5"
+          rx="2"
+          fill="white"
+          fill-opacity="0.7"
+        />
+        <!-- Row 2 -->
+        <rect
+          x="25"
+          y="102"
+          width="42"
+          height="5"
+          rx="2"
+          fill="white"
+          fill-opacity="0.7"
+        />
+        <rect
+          x="88"
+          y="102"
+          width="28"
+          height="5"
+          rx="2"
+          fill="white"
+          fill-opacity="0.7"
+        />
+        <rect
+          x="151"
+          y="102"
+          width="38"
+          height="5"
+          rx="2"
+          fill="white"
+          fill-opacity="0.7"
+        />
+        <!-- Row 3 -->
+        <rect
+          x="25"
+          y="132"
+          width="24"
+          height="5"
+          rx="2"
+          fill="white"
+          fill-opacity="0.7"
+        />
+        <rect
+          x="88"
+          y="132"
+          width="46"
+          height="5"
+          rx="2"
+          fill="white"
+          fill-opacity="0.7"
+        />
+        <rect
+          x="151"
+          y="132"
+          width="30"
+          height="5"
+          rx="2"
+          fill="white"
+          fill-opacity="0.7"
+        />
+        <!-- Row 4 -->
+        <rect
+          x="25"
+          y="162"
+          width="36"
+          height="5"
+          rx="2"
+          fill="white"
+          fill-opacity="0.7"
+        />
+        <rect
+          x="88"
+          y="162"
+          width="24"
+          height="5"
+          rx="2"
+          fill="white"
+          fill-opacity="0.7"
+        />
+        <rect
+          x="151"
+          y="162"
+          width="40"
+          height="5"
+          rx="2"
+          fill="white"
+          fill-opacity="0.7"
+        />
+      </svg>
+    </div>
+
+    <!-- Content -->
+    <div class="relative z-10 px-8 py-10">
+      <h2
+        class="font-headline text-3xl font-bold text-white leading-tight mb-2"
+      >
+        Explore your data
+      </h2>
+      <p class="text-white/70 text-sm max-w-xs mb-0">
+        Browse full submission datasets by sector and form. Click any column
+        header to visualise and pin charts to your reporting dashboards.
+      </p>
+    </div>
+  </div>
 </div>
 
 <!-- Form selector -->

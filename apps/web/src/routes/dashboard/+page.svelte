@@ -63,6 +63,10 @@
   }
 </script>
 
+<svelte:head>
+  <title>Overview — Athena</title>
+</svelte:head>
+
 <!-- Page header -->
 <div class="px-6 py-6 md:px-8">
   <h1 class="font-headline text-2xl font-semibold text-on-surface">Overview</h1>
@@ -365,7 +369,7 @@
   </div>
 </div>
 
-<!-- ─── Indicator Progress ────────────────────────────────── -->
+<!-- ─── Indicator Progress ──────────────────────────────────
 <div class="px-6 md:px-8 pb-6">
   <div class="bg-white rounded-2xl ambient-shadow p-6">
     <h2 class="font-headline font-semibold text-base text-on-surface mb-4">
@@ -417,7 +421,7 @@
       {/if}
     {/if}
   </div>
-</div>
+</div> -->
 
 <!-- ─── Recent Submissions ────────────────────────────────── -->
 <div class="px-6 md:px-8 pb-10">
@@ -490,3 +494,15 @@
 
 <!-- ─── My Insights ───────────────────────────────────────── -->
 <PinnedInsightsGrid insights={pinnedInsights} />
+
+{#if pinnedInsights.length > 0}
+  <div class="px-6 md:px-8 pb-8 flex justify-end">
+    <a
+      href="/dashboard/reporting"
+      class="flex items-center gap-1.5 text-sm font-medium text-primary hover:text-primary-dim transition-colors"
+    >
+      View all dashboards
+      <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+    </a>
+  </div>
+{/if}

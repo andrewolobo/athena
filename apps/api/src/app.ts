@@ -18,6 +18,7 @@ import conflictsRouter from "./routes/conflicts";
 import indicatorsRouter from "./routes/indicators";
 import reportingRouter from "./routes/reporting";
 import insightsRouter from "./routes/insights";
+import dashboardsRouter from "./routes/dashboards";
 import devicesRouter from "./routes/devices";
 import sectorsRouter from "./routes/sectors";
 
@@ -55,6 +56,7 @@ app.use("/conflicts", conflictsRouter);
 app.use("/indicators", indicatorsRouter);
 app.use("/reporting", reportingRouter);
 app.use("/insights", insightsRouter);
+app.use("/dashboards", dashboardsRouter);
 app.use("/org/devices", devicesRouter);
 app.use("/sectors", sectorsRouter);
 

@@ -9,6 +9,7 @@ import type {
   DayActivity,
   RecentSubmission,
   UserInsight,
+  UserDashboard,
 } from "$lib/types";
 
 export const load: PageServerLoad = async ({ cookies }) => {
@@ -21,7 +22,7 @@ export const load: PageServerLoad = async ({ cookies }) => {
     forms,
     activity,
     recentSubmissions,
-    pinnedInsights,
+    dashboardsResult,
   ] = await Promise.allSettled([
     apiFetch<ReportingSummary>("/reporting/summary", token),
     apiFetch<Paginated<QuarantineEntry>>("/quarantine?limit=1", token),
@@ -29,7 +30,7 @@ export const load: PageServerLoad = async ({ cookies }) => {
     apiFetch<Form[]>("/forms", token),
     apiFetch<DayActivity[]>("/reporting/activity", token),
     apiFetch<RecentSubmission[]>("/reporting/recent", token),
-    apiFetch<UserInsight[]>("/insights/mine", token),
+    apiFetch<UserDashboard[]>("/dashboards", token),
   ]);
 
   const reportingSummary =
@@ -56,6 +57,24 @@ export const load: PageServerLoad = async ({ cookies }) => {
     count,
   }));
 
+  // Load the default dashboard's insights for the home grid.
+  const dashboards =
+    dashboardsResult.status === "fulfilled" ? dashboardsResult.value : [];
+  const defaultDashboard =
+    dashboards.find((d) => d.is_default) ?? dashboards[0] ?? null;
+
+  let pinnedInsights: UserInsight[] = [];
+  if (defaultDashboard) {
+    try {
+      pinnedInsights = await apiFetch<UserInsight[]>(
+        `/insights/mine?dashboard_id=${defaultDashboard.id}`,
+        token,
+      );
+    } catch {
+      pinnedInsights = [];
+    }
+  }
+
   return {
     summary: reportingSummary,
     quarantineTotal,
@@ -66,7 +85,6 @@ export const load: PageServerLoad = async ({ cookies }) => {
     activity: activity.status === "fulfilled" ? activity.value : [],
     recentSubmissions:
       recentSubmissions.status === "fulfilled" ? recentSubmissions.value : [],
-    pinnedInsights:
-      pinnedInsights.status === "fulfilled" ? pinnedInsights.value : [],
+    pinnedInsights,
   };
 };

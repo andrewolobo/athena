@@ -20,6 +20,10 @@
   }
 </script>
 
+<svelte:head>
+  <title>Indicators — Athena</title>
+</svelte:head>
+
 <!-- Banner -->
 <div class="px-6 md:px-8 pt-6 pb-8">
   <div

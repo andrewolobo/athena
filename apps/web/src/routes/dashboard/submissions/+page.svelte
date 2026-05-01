@@ -66,6 +66,10 @@
   }
 </script>
 
+<svelte:head>
+  <title>Submissions — Athena</title>
+</svelte:head>
+
 <div class="px-6 py-6 md:px-8">
   <h1 class="font-headline text-2xl font-semibold text-on-surface">
     Submissions

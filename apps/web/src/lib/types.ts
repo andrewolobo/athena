@@ -196,6 +196,18 @@ export type InsightAggregate =
   | InsightAggregateCategorical
   | InsightAggregateTemporal;
 
+export interface UserDashboard {
+  id: string;
+  org_id: string;
+  user_id: string;
+  name: string;
+  description: string | null;
+  is_default: boolean;
+  display_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface UserInsight {
   id: string;
   org_id: string;
@@ -212,6 +224,7 @@ export interface UserInsight {
   filters: Record<string, unknown>;
   is_pinned: boolean;
   pin_order: number;
+  dashboard_id: string | null;
   created_at: string;
   updated_at: string;
 }

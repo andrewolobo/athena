@@ -36,6 +36,10 @@
   }
 </script>
 
+<svelte:head>
+  <title>Device Management — Athena</title>
+</svelte:head>
+
 <!-- Header -->
 <div class="px-6 py-6 md:px-8 flex items-start justify-between gap-4 flex-wrap">
   <div>
